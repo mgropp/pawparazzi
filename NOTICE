@@ -1,5 +1,18 @@
 Pawparazzi
 
+Pawparazzi is licensed under the GNU General Public License v3.0 (see LICENSE).
+
+Third-party libraries (all licensed under the Apache License 2.0,
+https://www.apache.org/licenses/LICENSE-2.0):
+    AndroidX (core-ktx, activity-compose, lifecycle, DataStore, CameraX, Compose, Material 3)
+        Copyright The Android Open Source Project
+    MediaPipe Tasks Vision
+        Copyright The MediaPipe Authors
+    Hilt / Dagger
+        Copyright The Dagger Authors
+    Kotlin standard library and kotlinx.coroutines
+        Copyright JetBrains s.r.o. and Kotlin Programming Language contributors
+
 Bundled sounds (actions/src/main/res/raw/):
 cat_default.wav:
     qubodup, CC0 license
