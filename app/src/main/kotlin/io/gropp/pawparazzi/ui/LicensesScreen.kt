@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
+import io.gropp.pawparazzi.BuildConfig
 import io.gropp.pawparazzi.R
 
 private data class Credit(
@@ -62,6 +63,7 @@ fun LicensesScreen(onBack: () -> Unit) {
         OutlinedButton(onClick = onBack) { Text("Back") }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             item { Header("This app") }
+            item { Text("Version ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium) }
             item { CreditItem(appCredit) }
             item { Header("Sounds") }
             items(soundCredits) { CreditItem(it) }

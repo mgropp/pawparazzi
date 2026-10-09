@@ -6,6 +6,14 @@ plugins {
     alias(libs.plugins.aboutlibraries)
 }
 
+val appVersionName = providers.gradleProperty("versionName").getOrElse("0.0.0-dev")
+
+val appVersionCode = Regex("""^(\d+)\.(\d+)\.(\d+)""").find(appVersionName)
+    ?.destructured
+    ?.let { (major, minor, patch) -> major.toInt() * 10_000 + minor.toInt() * 100 + patch.toInt() }
+    ?.coerceAtLeast(1)
+    ?: 1
+
 android {
     namespace = "io.gropp.pawparazzi"
     compileSdk = 36
@@ -14,12 +22,13 @@ android {
         applicationId = "io.gropp.pawparazzi"
         minSdk = 29
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 

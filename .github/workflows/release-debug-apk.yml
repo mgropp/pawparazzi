@@ -1,0 +1,41 @@
+name: Release debug APK
+
+on:
+  push:
+    tags: ['v-*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle (with caching)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Derive version from tag
+        run: echo "VERSION=${GITHUB_REF_NAME#v-}" >> "$GITHUB_ENV"
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug -PversionName="$VERSION" --stacktrace
+
+      - name: Rename APK
+        run: mv app/build/outputs/apk/debug/*.apk "pawparazzi-${VERSION}-debug.apk"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: pawparazzi-*-debug.apk
+          generate_release_notes: true
