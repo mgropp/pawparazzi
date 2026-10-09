@@ -28,10 +28,13 @@ import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import io.gropp.pawparazzi.service.DetectionService
 import io.gropp.pawparazzi.state.PreviewSurfaceHolder
+import io.gropp.pawparazzi.ui.LicensesScreen
 import io.gropp.pawparazzi.ui.MainScreen
 import io.gropp.pawparazzi.ui.SettingsScreen
 import io.gropp.pawparazzi.ui.SystemStatus
 import javax.inject.Inject
+
+private enum class Screen { Main, Settings, Licenses }
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -45,7 +48,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
-                var showSettings by rememberSaveable { mutableStateOf(false) }
+                var screen by rememberSaveable { mutableStateOf(Screen.Main) }
                 val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
                     refreshSystemStatus()
                 }
@@ -56,16 +59,20 @@ class MainActivity : ComponentActivity() {
                     if (missing.isNotEmpty()) permissionLauncher.launch(missing.toTypedArray())
                 }
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    if (showSettings) {
-                        SettingsScreen(settingsViewModel, onBack = { showSettings = false })
-                    } else {
-                        MainScreen(
+                    when (screen) {
+                        Screen.Licenses -> LicensesScreen(onBack = { screen = Screen.Settings })
+                        Screen.Settings -> SettingsScreen(
+                            settingsViewModel,
+                            onBack = { screen = Screen.Main },
+                            onOpenLicenses = { screen = Screen.Licenses },
+                        )
+                        Screen.Main -> MainScreen(
                             viewModel = mainViewModel,
                             surfaceHolder = surfaceHolder,
                             systemStatus = systemStatus,
                             onStart = ::startDetection,
                             onStop = { startService(DetectionService.stopIntent(this@MainActivity)) },
-                            onOpenSettings = { showSettings = true },
+                            onOpenSettings = { screen = Screen.Settings },
                             onOpenAppSettings = ::openAppSettings,
                             onRequestBatteryExemption = ::requestBatteryExemption,
                             onRequestPermissions = {

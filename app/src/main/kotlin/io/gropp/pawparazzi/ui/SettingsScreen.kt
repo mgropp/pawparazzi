@@ -29,7 +29,7 @@ import io.gropp.pawparazzi.core.detection.Label
 import io.gropp.pawparazzi.core.settings.SettingsValidator as Limits
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
+fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit, onOpenLicenses: () -> Unit) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
     val message by viewModel.message.collectAsStateWithLifecycle()
     val update = viewModel::update
@@ -66,6 +66,9 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit) {
         FloatSetting("Min free space (GB)", settings.minFreeSpaceGb, Limits.MIN_FREE_SPACE_GB) { v -> update { it.copy(minFreeSpaceGb = v) } }
         IntSetting("Max results", settings.maxResults, Limits.MAX_RESULTS) { v -> update { it.copy(maxResults = v) } }
         FloatSetting("Label decay (1.0 = none)", settings.labelDecay, Limits.LABEL_DECAY) { v -> update { it.copy(labelDecay = v) } }
+
+        Section("About")
+        OutlinedButton(onClick = onOpenLicenses) { Text("Open source licenses") }
     }
 }
 

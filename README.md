@@ -47,4 +47,4 @@ The app throttles analysis to 1 FPS at thermal status `SEVERE` and pauses the ca
 
 ## Licenses
 
-See `NOTICE`.
+See `LICENSE` and `NOTICE`. The same information is available in the app under Settings > Open source licenses.
