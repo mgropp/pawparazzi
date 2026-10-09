@@ -1,0 +1,15 @@
+Pawparazzi
+
+Bundled sounds (actions/src/main/res/raw/):
+cat_default.wav:
+    qubodup, CC0 license
+    https://freesound.org/people/qubodup/sounds/813119/
+dog_default.wav:
+    boop_7, CC0 license
+    https://freesound.org/s/684369/
+    (cropped)
+
+The object detection model efficientdet_lite0.tflite is downloaded at build time from
+Google's MediaPipe model storage and is subject to its own license (Apache 2.0).
+
+Thanks a lot!
