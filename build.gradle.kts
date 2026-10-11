@@ -7,3 +7,12 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.aboutlibraries) apply false
 }
+
+subprojects {
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+        compilerOptions.allWarningsAsErrors.set(true)
+    }
+    tasks.withType<JavaCompile>().configureEach {
+        options.compilerArgs.add("-Werror")
+    }
+}
