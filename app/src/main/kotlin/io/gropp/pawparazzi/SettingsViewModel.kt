@@ -1,6 +1,5 @@
 package io.gropp.pawparazzi
 
-import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +19,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val repository: SettingsRepository,
-    private val soundPlayer: SoundPlayer,
+    private val soundChecker: SoundChecker,
 ) : ViewModel() {
     val settings: StateFlow<AppSettings> =
         repository.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
@@ -40,13 +39,13 @@ class SettingsViewModel @Inject constructor(
         _message.value = null
     }
 
-    fun pickSound(label: Label, uri: Uri) {
+    fun pickSound(label: Label, uri: String) {
         viewModelScope.launch {
-            when (val check = soundPlayer.check(uri)) {
+            when (val check = soundChecker.check(uri)) {
                 SoundCheck.Ok -> repository.update {
                     when (label) {
-                        Label.CAT -> it.copy(catSoundUri = uri.toString())
-                        Label.DOG -> it.copy(dogSoundUri = uri.toString())
+                        Label.CAT -> it.copy(catSoundUri = uri)
+                        Label.DOG -> it.copy(dogSoundUri = uri)
                     }
                 }
                 is SoundCheck.TooLong ->

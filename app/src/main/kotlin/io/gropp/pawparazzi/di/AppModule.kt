@@ -1,6 +1,7 @@
 package io.gropp.pawparazzi.di
 
 import android.content.Context
+import android.net.Uri
 import android.os.SystemClock
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -10,6 +11,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import io.gropp.pawparazzi.SoundChecker
+import io.gropp.pawparazzi.actions.SoundPlayer
 import io.gropp.pawparazzi.core.detection.Clock
 import io.gropp.pawparazzi.core.settings.SettingsRepository
 import javax.inject.Singleton
@@ -27,4 +30,8 @@ object AppModule {
     @Singleton
     fun settingsRepository(@ApplicationContext context: Context): SettingsRepository =
         SettingsRepository(context.settingsDataStore)
+
+    @Provides
+    @Singleton
+    fun soundChecker(soundPlayer: SoundPlayer): SoundChecker = SoundChecker { soundPlayer.check(Uri.parse(it)) }
 }

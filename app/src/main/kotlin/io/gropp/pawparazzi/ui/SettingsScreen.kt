@@ -110,7 +110,7 @@ private fun SoundSetting(label: String, uri: String?, viewModel: SettingsViewMod
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { picked ->
         if (picked != null) {
             context.contentResolver.takePersistableUriPermission(picked, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            viewModel.pickSound(soundLabel, picked)
+            viewModel.pickSound(soundLabel, picked.toString())
         }
     }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
