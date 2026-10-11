@@ -10,27 +10,14 @@ import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetector
 import com.google.mediapipe.tasks.vision.objectdetector.ObjectDetectorResult
 import io.gropp.pawparazzi.core.detection.Clock
-import io.gropp.pawparazzi.core.detection.Detection
-import io.gropp.pawparazzi.core.detection.Label
-import io.gropp.pawparazzi.core.detection.NormBox
-import java.util.concurrent.ConcurrentHashMap
-
-data class FrameDetections(
-    val timestampMs: Long,
-    val detections: List<Detection>,
-    val imageWidth: Int,
-    val imageHeight: Int,
-) {
-    val aspect: Float get() = imageWidth.toFloat() / imageHeight.toFloat()
-}
 
 class ObjectDetectorWrapper(
     context: Context,
     private val clock: Clock,
     private val onResult: (FrameDetections) -> Unit,
 ) : AutoCloseable {
-    private val sentSizes = ConcurrentHashMap<Long, Pair<Int, Int>>()
-    private var lastTimestampMs = Long.MIN_VALUE
+    private val resultMapper = DetectionResultMapper()
+    private val timestamps = MonotonicTimestamps(clock)
     private val detector: ObjectDetector
 
     init {
@@ -53,14 +40,13 @@ class ObjectDetectorWrapper(
 
     @Synchronized
     fun detect(upright: Bitmap) {
-        val timestampMs = maxOf(clock.nowMs(), lastTimestampMs + 1)
-        lastTimestampMs = timestampMs
-        sentSizes[timestampMs] = upright.width to upright.height
+        val timestampMs = timestamps.next()
+        resultMapper.recordSent(timestampMs, upright.width, upright.height)
         val image = BitmapImageBuilder(upright).build()
         try {
             detector.detectAsync(image, timestampMs)
         } catch (e: Exception) {
-            sentSizes.remove(timestampMs)
+            resultMapper.discardSent(timestampMs)
             throw e
         } finally {
             image.close()
@@ -69,34 +55,23 @@ class ObjectDetectorWrapper(
 
     override fun close() {
         detector.close()
-        sentSizes.clear()
+        resultMapper.clear()
     }
 
     private fun handleResult(result: ObjectDetectorResult) {
         try {
             val timestampMs = result.timestampMs()
-            val (width, height) = sentSizes.remove(timestampMs) ?: return
-            val detections = result.detections().mapNotNull { det ->
-                val category = det.categories().firstOrNull() ?: return@mapNotNull null
-                val label = when (category.categoryName()) {
-                    "cat" -> Label.CAT
-                    "dog" -> Label.DOG
-                    else -> return@mapNotNull null
-                }
-                val b = det.boundingBox()
-                Detection(
-                    label,
-                    category.score(),
-                    NormBox(
-                        (b.left / width).coerceIn(0f, 1f),
-                        (b.top / height).coerceIn(0f, 1f),
-                        (b.right / width).coerceIn(0f, 1f),
-                        (b.bottom / height).coerceIn(0f, 1f),
-                    ),
+            val raw = result.detections().map { det ->
+                val box = det.boundingBox()
+                RawDetection(
+                    det.categories().firstOrNull()?.categoryName(),
+                    det.categories().firstOrNull()?.score() ?: 0f,
+                    box.left, box.top, box.right, box.bottom,
                 )
             }
-            Log.d(TAG, "raw detections @$timestampMs: $detections")
-            onResult(FrameDetections(timestampMs, detections, width, height))
+            val frame = resultMapper.map(timestampMs, raw) ?: return
+            Log.d(TAG, "raw detections @$timestampMs: ${frame.detections}")
+            onResult(frame)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to handle detection result", e)
         }

@@ -24,16 +24,43 @@ sealed interface CaptureEvent {
     data object StorageOk : CaptureEvent
 }
 
+interface StorageGuard {
+    fun freeBytes(): Long
+    suspend fun enforceCap(capBytes: Long)
+}
+
+fun interface PhotoTaker {
+    suspend fun take(name: String): Boolean
+}
+
 class CaptureQueue(
-    private val context: Context,
     scope: CoroutineScope,
-    private val photoStore: PhotoStore,
-    private val imageCapture: () -> ImageCapture?,
+    private val storage: StorageGuard,
+    private val photoTaker: PhotoTaker,
     private val minFreeBytes: () -> Long,
     private val capBytes: () -> Long,
     private val nowWallMs: () -> Long,
     private val onEvent: (CaptureEvent) -> Unit,
 ) {
+    constructor(
+        context: Context,
+        scope: CoroutineScope,
+        photoStore: PhotoStore,
+        imageCapture: () -> ImageCapture?,
+        minFreeBytes: () -> Long,
+        capBytes: () -> Long,
+        nowWallMs: () -> Long,
+        onEvent: (CaptureEvent) -> Unit,
+    ) : this(
+        scope,
+        PhotoStoreGuard(photoStore),
+        ImageCapturePhotoTaker(context, imageCapture),
+        minFreeBytes,
+        capBytes,
+        nowWallMs,
+        onEvent,
+    )
+
     private val channel = Channel<CaptureRequest>(CAPACITY)
 
     init {
@@ -57,18 +84,40 @@ class CaptureQueue(
     }
 
     private suspend fun process(request: CaptureRequest) {
-        val free = photoStore.freeBytes()
+        val free = storage.freeBytes()
         if (free < minFreeBytes()) {
             Log.w(TAG, "Low storage ($free bytes free), skipping photo")
             onEvent(CaptureEvent.LowStorage(free))
             return
         }
         onEvent(CaptureEvent.StorageOk)
+        val name = PhotoNaming.displayName(request.triggers, nowWallMs())
+        if (photoTaker.take(name)) {
+            onEvent(CaptureEvent.Saved(name))
+            storage.enforceCap(capBytes())
+        }
+    }
+
+    private companion object {
+        const val CAPACITY = 4
+    }
+}
+
+private class PhotoStoreGuard(private val photoStore: PhotoStore) : StorageGuard {
+    override fun freeBytes(): Long = photoStore.freeBytes()
+
+    override suspend fun enforceCap(capBytes: Long) = photoStore.enforceCap(capBytes)
+}
+
+private class ImageCapturePhotoTaker(
+    private val context: Context,
+    private val imageCapture: () -> ImageCapture?,
+) : PhotoTaker {
+    override suspend fun take(name: String): Boolean {
         val capture = imageCapture() ?: run {
             Log.w(TAG, "No ImageCapture bound, skipping photo")
-            return
+            return false
         }
-        val name = PhotoNaming.displayName(request.triggers, nowWallMs())
         val values = ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, name)
             put(MediaStore.Images.Media.MIME_TYPE, PhotoNaming.MIME_TYPE)
@@ -79,10 +128,7 @@ class CaptureQueue(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             values,
         ).build()
-        if (takePicture(capture, options)) {
-            onEvent(CaptureEvent.Saved(name))
-            photoStore.enforceCap(capBytes())
-        }
+        return takePicture(capture, options)
     }
 
     private suspend fun takePicture(capture: ImageCapture, options: ImageCapture.OutputFileOptions): Boolean =
@@ -102,9 +148,6 @@ class CaptureQueue(
                 },
             )
         }
-
-    private companion object {
-        const val TAG = "CaptureQueue"
-        const val CAPACITY = 4
-    }
 }
+
+private const val TAG = "CaptureQueue"
