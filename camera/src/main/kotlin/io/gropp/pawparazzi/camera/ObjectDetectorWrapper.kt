@@ -21,20 +21,21 @@ class ObjectDetectorWrapper(
     private val detector: ObjectDetector
 
     init {
-        val options = ObjectDetector.ObjectDetectorOptions.builder()
-            .setBaseOptions(
-                BaseOptions.builder()
-                    .setModelAssetPath(MODEL_ASSET)
-                    .setDelegate(Delegate.CPU)
-                    .build(),
-            )
-            .setRunningMode(RunningMode.LIVE_STREAM)
-            .setScoreThreshold(SCORE_THRESHOLD)
-            .setMaxResults(MAX_RESULTS)
-            .setCategoryAllowlist(listOf("cat", "dog"))
-            .setResultListener { result, _ -> handleResult(result) }
-            .setErrorListener { Log.e(TAG, "Detector error", it) }
-            .build()
+        val options =
+            ObjectDetector.ObjectDetectorOptions.builder()
+                .setBaseOptions(
+                    BaseOptions.builder()
+                        .setModelAssetPath(MODEL_ASSET)
+                        .setDelegate(Delegate.CPU)
+                        .build()
+                )
+                .setRunningMode(RunningMode.LIVE_STREAM)
+                .setScoreThreshold(SCORE_THRESHOLD)
+                .setMaxResults(MAX_RESULTS)
+                .setCategoryAllowlist(listOf("cat", "dog"))
+                .setResultListener { result, _ -> handleResult(result) }
+                .setErrorListener { Log.e(TAG, "Detector error", it) }
+                .build()
         detector = ObjectDetector.createFromOptions(context, options)
     }
 
@@ -61,14 +62,18 @@ class ObjectDetectorWrapper(
     private fun handleResult(result: ObjectDetectorResult) {
         try {
             val timestampMs = result.timestampMs()
-            val raw = result.detections().map { det ->
-                val box = det.boundingBox()
-                RawDetection(
-                    det.categories().firstOrNull()?.categoryName(),
-                    det.categories().firstOrNull()?.score() ?: 0f,
-                    box.left, box.top, box.right, box.bottom,
-                )
-            }
+            val raw =
+                result.detections().map { det ->
+                    val box = det.boundingBox()
+                    RawDetection(
+                        det.categories().firstOrNull()?.categoryName(),
+                        det.categories().firstOrNull()?.score() ?: 0f,
+                        box.left,
+                        box.top,
+                        box.right,
+                        box.bottom,
+                    )
+                }
             val frame = resultMapper.map(timestampMs, raw) ?: return
             Log.d(TAG, "raw detections @$timestampMs: ${frame.detections}")
             onResult(frame)

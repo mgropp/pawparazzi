@@ -28,17 +28,19 @@ android {
 
 val modelFile = layout.projectDirectory.file("src/main/assets/efficientdet_lite0.tflite")
 
-val downloadModel = tasks.register("downloadModel") {
-    outputs.file(modelFile)
-    onlyIf { !modelFile.asFile.exists() }
-    doLast {
-        val url = "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite"
-        modelFile.asFile.parentFile.mkdirs()
-        URI(url).toURL().openStream().use { input ->
-            modelFile.asFile.outputStream().use { input.copyTo(it) }
+val downloadModel =
+    tasks.register("downloadModel") {
+        outputs.file(modelFile)
+        onlyIf { !modelFile.asFile.exists() }
+        doLast {
+            val url =
+                "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/int8/1/efficientdet_lite0.tflite"
+            modelFile.asFile.parentFile.mkdirs()
+            URI(url).toURL().openStream().use { input ->
+                modelFile.asFile.outputStream().use { input.copyTo(it) }
+            }
         }
     }
-}
 
 tasks.named("preBuild") { dependsOn(downloadModel) }
 

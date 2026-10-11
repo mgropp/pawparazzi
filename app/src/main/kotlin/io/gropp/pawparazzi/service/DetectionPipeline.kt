@@ -21,7 +21,13 @@ class DetectionPipeline(
     private val lock = Any()
     private val tracker = Tracker {
         settings.value.let {
-            TrackerParams(it.iouThreshold, it.centerDistThreshold, it.labelDedupeIou, it.labelDecay, it.gracePeriodMs)
+            TrackerParams(
+                it.iouThreshold,
+                it.centerDistThreshold,
+                it.labelDedupeIou,
+                it.labelDecay,
+                it.gracePeriodMs,
+            )
         }
     }
     private val gate = ActionGate { settings.value.let { GateParams(it.cooldownMs, it.minHits) } }
@@ -34,12 +40,13 @@ class DetectionPipeline(
         try {
             val s = settings.value
             val filtered = DetectionFilter.apply(frame.detections, s.scoreThreshold, s.maxResults)
-            val triggers = synchronized(lock) {
-                val update = tracker.update(filtered, frame.aspect, frame.timestampMs)
-                val result = gate.evaluate(update, frame.timestampMs)
-                publishTracks(update.tracks, frame)
-                result
-            }
+            val triggers =
+                synchronized(lock) {
+                    val update = tracker.update(filtered, frame.aspect, frame.timestampMs)
+                    val result = gate.evaluate(update, frame.timestampMs)
+                    publishTracks(update.tracks, frame)
+                    result
+                }
             if (triggers.isNotEmpty()) {
                 stateRepository.update { it.copy(lastTriggerWallMs = wallClockMs()) }
                 onTriggers(triggers)
@@ -66,7 +73,9 @@ class DetectionPipeline(
         frameTimestamps.addLast(frame.timestampMs)
         while (frameTimestamps.size > FPS_WINDOW) frameTimestamps.removeFirst()
         val spanMs = frameTimestamps.last() - frameTimestamps.first()
-        val fps = if (frameTimestamps.size > 1 && spanMs > 0) (frameTimestamps.size - 1) * 1000f / spanMs else 0f
+        val fps =
+            if (frameTimestamps.size > 1 && spanMs > 0) (frameTimestamps.size - 1) * 1000f / spanMs
+            else 0f
         stateRepository.update {
             it.copy(
                 tracks = tracks.map { t -> TrackUi(t.id, t.label, t.lastScore, t.box) },

@@ -17,7 +17,8 @@ class NotificationTextTest {
 
     @Test
     fun thermalPauseWinsOverRepeatedRebinds() {
-        val state = DetectionUiState(warnings = setOf(Warning.REPEATED_REBINDS, Warning.THERMAL_PAUSED))
+        val state =
+            DetectionUiState(warnings = setOf(Warning.REPEATED_REBINDS, Warning.THERMAL_PAUSED))
 
         assertThat(text(state)).isEqualTo("Paused: phone too hot")
     }
@@ -31,7 +32,11 @@ class NotificationTextTest {
 
     @Test
     fun otherWarningsDoNotChangeHeadline() {
-        val state = DetectionUiState(warnings = setOf(Warning.CAMERA_ERROR, Warning.THERMAL_THROTTLED, Warning.SOUND_FALLBACK))
+        val state =
+            DetectionUiState(
+                warnings =
+                    setOf(Warning.CAMERA_ERROR, Warning.THERMAL_THROTTLED, Warning.SOUND_FALLBACK)
+            )
 
         assertThat(text(state)).isEqualTo("Watching for cats and dogs")
     }
@@ -47,15 +52,17 @@ class NotificationTextTest {
     fun appendsLowStorageNote() {
         val state = DetectionUiState(warnings = setOf(Warning.LOW_STORAGE))
 
-        assertThat(text(state)).isEqualTo("Watching for cats and dogs · low storage, photos skipped")
+        assertThat(text(state))
+            .isEqualTo("Watching for cats and dogs · low storage, photos skipped")
     }
 
     @Test
     fun joinsAllPartsInOrder() {
-        val state = DetectionUiState(
-            warnings = setOf(Warning.THERMAL_PAUSED, Warning.LOW_STORAGE),
-            lastTriggerWallMs = 7L,
-        )
+        val state =
+            DetectionUiState(
+                warnings = setOf(Warning.THERMAL_PAUSED, Warning.LOW_STORAGE),
+                lastTriggerWallMs = 7L,
+            )
 
         assertThat(text(state))
             .isEqualTo("Paused: phone too hot · last trigger t7 · low storage, photos skipped")

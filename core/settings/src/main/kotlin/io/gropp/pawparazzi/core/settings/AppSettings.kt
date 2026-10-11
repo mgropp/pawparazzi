@@ -16,10 +16,17 @@ data class AppSettings(
     val maxResults: Int = 5,
     val labelDecay: Float = 0.9f,
 ) {
-    val cooldownMs: Long get() = cooldownSec * 1000L
-    val gracePeriodMs: Long get() = (gracePeriodSec * 1000f).toLong()
-    val storageCapBytes: Long get() = (storageCapGb * BYTES_PER_GB).toLong()
-    val minFreeSpaceBytes: Long get() = (minFreeSpaceGb * BYTES_PER_GB).toLong()
+    val cooldownMs: Long
+        get() = cooldownSec * 1000L
+
+    val gracePeriodMs: Long
+        get() = (gracePeriodSec * 1000f).toLong()
+
+    val storageCapBytes: Long
+        get() = (storageCapGb * BYTES_PER_GB).toLong()
+
+    val minFreeSpaceBytes: Long
+        get() = (minFreeSpaceGb * BYTES_PER_GB).toLong()
 
     private companion object {
         const val BYTES_PER_GB = 1024f * 1024f * 1024f

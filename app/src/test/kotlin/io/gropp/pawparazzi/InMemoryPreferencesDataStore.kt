@@ -11,7 +11,9 @@ class InMemoryPreferencesDataStore : DataStore<Preferences> {
 
     override val data: Flow<Preferences> = state
 
-    override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences {
+    override suspend fun updateData(
+        transform: suspend (t: Preferences) -> Preferences
+    ): Preferences {
         val updated = transform(state.value)
         state.value = updated
         return updated

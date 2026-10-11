@@ -8,7 +8,6 @@ import android.util.Range
 import android.util.Size
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.camera2.interop.Camera2Interop
-import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.CameraState
@@ -61,7 +60,11 @@ class CameraController(
     var lastSummary: BoundSummary? = null
         private set
 
-    suspend fun bind(fps: Int, rotation: Int, surfaceProvider: Preview.SurfaceProvider?): BoundSummary {
+    suspend fun bind(
+        fps: Int,
+        rotation: Int,
+        surfaceProvider: Preview.SurfaceProvider?,
+    ): BoundSummary {
         this.fps = fps
         this.rotation = rotation
         this.surfaceProvider = surfaceProvider
@@ -74,21 +77,32 @@ class CameraController(
         val range = selectFpsRange(cameraProvider)
         appliedRange = range
 
-        val analysis = ImageAnalysis.Builder()
-            .setResolutionSelector(resolutionSelector(ResolutionStrategy(Size(640, 480), ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER)))
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-            .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-            .setTargetRotation(rotation)
-            .also { applyFpsRange(Camera2Interop.Extender(it), range) }
-            .build()
-            .also { it.setAnalyzer(analysisExecutor, analyzer) }
+        val analysis =
+            ImageAnalysis.Builder()
+                .setResolutionSelector(
+                    resolutionSelector(
+                        ResolutionStrategy(
+                            Size(640, 480),
+                            ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
+                        )
+                    )
+                )
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .setTargetRotation(rotation)
+                .also { applyFpsRange(Camera2Interop.Extender(it), range) }
+                .build()
+                .also { it.setAnalyzer(analysisExecutor, analyzer) }
 
-        val capture = ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            .setResolutionSelector(resolutionSelector(ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY))
-            .setTargetRotation(rotation)
-            .also { applyFpsRange(Camera2Interop.Extender(it), range) }
-            .build()
+        val capture =
+            ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setResolutionSelector(
+                    resolutionSelector(ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY)
+                )
+                .setTargetRotation(rotation)
+                .also { applyFpsRange(Camera2Interop.Extender(it), range) }
+                .build()
 
         val previewUseCase = surfaceProvider?.let { sp ->
             Preview.Builder()
@@ -100,7 +114,12 @@ class CameraController(
         }
 
         val useCases = listOfNotNull<UseCase>(previewUseCase, analysis, capture)
-        val boundCamera = cameraProvider.bindToLifecycle(lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, *useCases.toTypedArray())
+        val boundCamera =
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                CameraSelector.DEFAULT_BACK_CAMERA,
+                *useCases.toTypedArray(),
+            )
         camera = boundCamera
         imageAnalysis = analysis
         imageCapture = capture
@@ -109,20 +128,25 @@ class CameraController(
 
         ContextCompat.getMainExecutor(context).execute {
             observedState?.removeObserver(stateObserver)
-            observedState = boundCamera.cameraInfo.cameraState.also { it.observe(lifecycleOwner, stateObserver) }
+            observedState =
+                boundCamera.cameraInfo.cameraState.also {
+                    it.observe(lifecycleOwner, stateObserver)
+                }
         }
 
-        val summary = BoundSummary(
-            analysisSize = analysis.resolutionInfo?.resolution,
-            captureSize = capture.resolutionInfo?.resolution,
-            previewSize = previewUseCase?.resolutionInfo?.resolution,
-            fpsRange = range,
-        )
+        val summary =
+            BoundSummary(
+                analysisSize = analysis.resolutionInfo?.resolution,
+                captureSize = capture.resolutionInfo?.resolution,
+                previewSize = previewUseCase?.resolutionInfo?.resolution,
+                fpsRange = range,
+            )
         lastSummary = summary
         val level = runCatching {
             Camera2CameraInfo.from(boundCamera.cameraInfo)
                 .getCameraCharacteristic(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
-        }.getOrNull()
+        }
+            .getOrNull()
         Log.i(TAG, "Bound: hardwareLevel=$level $summary")
         return summary
     }
@@ -141,7 +165,8 @@ class CameraController(
         val hadPreview = surfaceProvider != null
         surfaceProvider = newProvider
         if (!bound) return
-        if (hadPreview != (newProvider != null)) rebind() else preview?.setSurfaceProvider(newProvider)
+        if (hadPreview != (newProvider != null)) rebind()
+        else preview?.setSurfaceProvider(newProvider)
     }
 
     fun setTargetRotation(newRotation: Int) {
@@ -161,17 +186,25 @@ class CameraController(
     }
 
     private fun selectFpsRange(cameraProvider: ProcessCameraProvider): FpsRange? {
-        val info = CameraSelector.DEFAULT_BACK_CAMERA.filter(cameraProvider.availableCameraInfos).firstOrNull() ?: return null
-        val ranges = Camera2CameraInfo.from(info)
-            .getCameraCharacteristic(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)
-            ?.map { FpsRange(it.lower, it.upper) }
-            .orEmpty()
+        val info =
+            CameraSelector.DEFAULT_BACK_CAMERA.filter(cameraProvider.availableCameraInfos)
+                .firstOrNull() ?: return null
+        val ranges =
+            Camera2CameraInfo.from(info)
+                .getCameraCharacteristic(
+                    CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES
+                )
+                ?.map { FpsRange(it.lower, it.upper) }
+                .orEmpty()
         return FpsRangeSelector.select(ranges, fps)
     }
 
     private fun applyFpsRange(extender: Camera2Interop.Extender<*>, range: FpsRange?) {
         if (range == null) return
-        extender.setCaptureRequestOption(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(range.lower, range.upper))
+        extender.setCaptureRequestOption(
+            CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
+            Range(range.lower, range.upper),
+        )
     }
 
     private fun resolutionSelector(strategy: ResolutionStrategy?): ResolutionSelector =
@@ -180,19 +213,20 @@ class CameraController(
             .also { if (strategy != null) it.setResolutionStrategy(strategy) }
             .build()
 
-    private suspend fun awaitProvider(): ProcessCameraProvider = suspendCancellableCoroutine { cont ->
-        val future = ProcessCameraProvider.getInstance(context)
-        future.addListener(
-            {
-                try {
-                    cont.resume(future.get())
-                } catch (e: Exception) {
-                    cont.resumeWithException(e)
-                }
-            },
-            ContextCompat.getMainExecutor(context),
-        )
-    }
+    private suspend fun awaitProvider(): ProcessCameraProvider =
+        suspendCancellableCoroutine { cont ->
+            val future = ProcessCameraProvider.getInstance(context)
+            future.addListener(
+                {
+                    try {
+                        cont.resume(future.get())
+                    } catch (e: Exception) {
+                        cont.resumeWithException(e)
+                    }
+                },
+                ContextCompat.getMainExecutor(context),
+            )
+        }
 
     private companion object {
         const val TAG = "CameraController"

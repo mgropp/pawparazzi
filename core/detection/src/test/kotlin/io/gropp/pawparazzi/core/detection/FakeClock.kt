@@ -11,4 +11,5 @@ class FakeClock(var now: Long = 0L) : Clock {
 fun box(cx: Float, cy: Float, w: Float = 0.2f, h: Float = 0.2f) =
     NormBox(cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
 
-fun det(label: Label = Label.CAT, score: Float = 0.9f, box: NormBox = box(0.5f, 0.5f)) = Detection(label, score, box)
+fun det(label: Label = Label.CAT, score: Float = 0.9f, box: NormBox = box(0.5f, 0.5f)) =
+    Detection(label, score, box)

@@ -12,7 +12,8 @@ data class FrameDetections(
     val imageWidth: Int,
     val imageHeight: Int,
 ) {
-    val aspect: Float get() = imageWidth.toFloat() / imageHeight.toFloat()
+    val aspect: Float
+        get() = imageWidth.toFloat() / imageHeight.toFloat()
 }
 
 data class RawDetection(
@@ -53,11 +54,12 @@ class DetectionResultMapper {
     fun map(timestampMs: Long, raw: List<RawDetection>): FrameDetections? {
         val (width, height) = sentSizes.remove(timestampMs) ?: return null
         val detections = raw.mapNotNull { det ->
-            val label = when (det.categoryName) {
-                "cat" -> Label.CAT
-                "dog" -> Label.DOG
-                else -> return@mapNotNull null
-            }
+            val label =
+                when (det.categoryName) {
+                    "cat" -> Label.CAT
+                    "dog" -> Label.DOG
+                    else -> return@mapNotNull null
+                }
             Detection(
                 label,
                 det.score,

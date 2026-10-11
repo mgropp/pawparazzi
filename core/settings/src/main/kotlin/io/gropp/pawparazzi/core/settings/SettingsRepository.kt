@@ -11,9 +11,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 
 class SettingsRepository(private val dataStore: DataStore<Preferences>) {
-    val settings: Flow<AppSettings> = dataStore.data
-        .map { SettingsValidator.sanitize(it.toSettings()) }
-        .distinctUntilChanged()
+    val settings: Flow<AppSettings> =
+        dataStore.data.map { SettingsValidator.sanitize(it.toSettings()) }.distinctUntilChanged()
 
     suspend fun update(transform: (AppSettings) -> AppSettings) {
         dataStore.edit { prefs ->
@@ -45,7 +44,9 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         )
     }
 
-    private fun androidx.datastore.preferences.core.MutablePreferences.writeSettings(s: AppSettings) {
+    private fun androidx.datastore.preferences.core.MutablePreferences.writeSettings(
+        s: AppSettings
+    ) {
         this[FPS] = s.fps
         this[SCORE_THRESHOLD] = s.scoreThreshold
         this[COOLDOWN_SEC] = s.cooldownSec

@@ -7,7 +7,9 @@ import io.gropp.pawparazzi.state.DetectionStateRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class MainViewModel
+@Inject
+constructor(
     stateRepository: DetectionStateRepository,
     private val soundPlayer: SoundPlayer,
 ) : ViewModel() {

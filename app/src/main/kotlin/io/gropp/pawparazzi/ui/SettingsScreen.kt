@@ -35,7 +35,10 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit, onOpenLicen
     val update = viewModel::update
 
     Column(
-        Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp).verticalScroll(rememberScrollState()),
+        Modifier.fillMaxSize()
+            .safeDrawingPadding()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -43,7 +46,10 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit, onOpenLicen
             OutlinedButton(onClick = viewModel::reset) { Text("Reset to defaults") }
         }
         message?.let {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.weight(1f))
                 OutlinedButton(onClick = viewModel::dismissMessage) { Text("OK") }
             }
@@ -51,21 +57,52 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit, onOpenLicen
 
         Section("Basic")
         IntSetting("Analysis FPS", settings.fps, Limits.FPS) { v -> update { it.copy(fps = v) } }
-        FloatSetting("Score threshold", settings.scoreThreshold, Limits.SCORE_THRESHOLD) { v -> update { it.copy(scoreThreshold = v) } }
-        IntSetting("Cooldown (s)", settings.cooldownSec, Limits.COOLDOWN_SEC) { v -> update { it.copy(cooldownSec = v) } }
+        FloatSetting("Score threshold", settings.scoreThreshold, Limits.SCORE_THRESHOLD) { v ->
+            update { it.copy(scoreThreshold = v) }
+        }
+        IntSetting("Cooldown (s)", settings.cooldownSec, Limits.COOLDOWN_SEC) { v ->
+            update { it.copy(cooldownSec = v) }
+        }
         SoundSetting("Cat sound", settings.catSoundUri, viewModel, Label.CAT)
         SoundSetting("Dog sound", settings.dogSoundUri, viewModel, Label.DOG)
-        FloatSetting("Storage cap (GB)", settings.storageCapGb, Limits.STORAGE_CAP_GB) { v -> update { it.copy(storageCapGb = v) } }
+        FloatSetting("Storage cap (GB)", settings.storageCapGb, Limits.STORAGE_CAP_GB) { v ->
+            update { it.copy(storageCapGb = v) }
+        }
 
         Section("Advanced")
-        FloatSetting("Grace period (s)", settings.gracePeriodSec, Limits.GRACE_PERIOD_SEC) { v -> update { it.copy(gracePeriodSec = v) } }
-        FloatSetting("IoU threshold", settings.iouThreshold, Limits.IOU_THRESHOLD) { v -> update { it.copy(iouThreshold = v) } }
-        FloatSetting("Center distance threshold (0 = off)", settings.centerDistThreshold, Limits.CENTER_DIST_THRESHOLD) { v -> update { it.copy(centerDistThreshold = v) } }
-        IntSetting("Min hits", settings.minHits, Limits.MIN_HITS) { v -> update { it.copy(minHits = v) } }
-        FloatSetting("Label dedupe IoU (1.0 = off)", settings.labelDedupeIou, Limits.LABEL_DEDUPE_IOU) { v -> update { it.copy(labelDedupeIou = v) } }
-        FloatSetting("Min free space (GB)", settings.minFreeSpaceGb, Limits.MIN_FREE_SPACE_GB) { v -> update { it.copy(minFreeSpaceGb = v) } }
-        IntSetting("Max results", settings.maxResults, Limits.MAX_RESULTS) { v -> update { it.copy(maxResults = v) } }
-        FloatSetting("Label decay (1.0 = none)", settings.labelDecay, Limits.LABEL_DECAY) { v -> update { it.copy(labelDecay = v) } }
+        FloatSetting("Grace period (s)", settings.gracePeriodSec, Limits.GRACE_PERIOD_SEC) { v ->
+            update { it.copy(gracePeriodSec = v) }
+        }
+        FloatSetting("IoU threshold", settings.iouThreshold, Limits.IOU_THRESHOLD) { v ->
+            update { it.copy(iouThreshold = v) }
+        }
+        FloatSetting(
+            "Center distance threshold (0 = off)",
+            settings.centerDistThreshold,
+            Limits.CENTER_DIST_THRESHOLD,
+        ) { v ->
+            update { it.copy(centerDistThreshold = v) }
+        }
+        IntSetting("Min hits", settings.minHits, Limits.MIN_HITS) { v ->
+            update { it.copy(minHits = v) }
+        }
+        FloatSetting(
+            "Label dedupe IoU (1.0 = off)",
+            settings.labelDedupeIou,
+            Limits.LABEL_DEDUPE_IOU,
+        ) { v ->
+            update { it.copy(labelDedupeIou = v) }
+        }
+        FloatSetting("Min free space (GB)", settings.minFreeSpaceGb, Limits.MIN_FREE_SPACE_GB) { v
+            ->
+            update { it.copy(minFreeSpaceGb = v) }
+        }
+        IntSetting("Max results", settings.maxResults, Limits.MAX_RESULTS) { v ->
+            update { it.copy(maxResults = v) }
+        }
+        FloatSetting("Label decay (1.0 = none)", settings.labelDecay, Limits.LABEL_DECAY) { v ->
+            update { it.copy(labelDecay = v) }
+        }
 
         Section("About")
         OutlinedButton(onClick = onOpenLicenses) { Text("Open source licenses") }
@@ -74,7 +111,11 @@ fun SettingsScreen(viewModel: SettingsViewModel, onBack: () -> Unit, onOpenLicen
 
 @Composable
 private fun Section(title: String) {
-    Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+    Text(
+        title,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.padding(top = 12.dp),
+    )
 }
 
 @Composable
@@ -92,7 +133,12 @@ private fun IntSetting(label: String, value: Int, range: IntRange, onChange: (In
 }
 
 @Composable
-private fun FloatSetting(label: String, value: Float, range: ClosedFloatingPointRange<Float>, onChange: (Float) -> Unit) {
+private fun FloatSetting(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    onChange: (Float) -> Unit,
+) {
     Column {
         Text("$label: ${"%.2f".format(value)}")
         Slider(
@@ -105,21 +151,33 @@ private fun FloatSetting(label: String, value: Float, range: ClosedFloatingPoint
 }
 
 @Composable
-private fun SoundSetting(label: String, uri: String?, viewModel: SettingsViewModel, soundLabel: Label) {
+private fun SoundSetting(
+    label: String,
+    uri: String?,
+    viewModel: SettingsViewModel,
+    soundLabel: Label,
+) {
     val context = LocalContext.current
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { picked ->
-        if (picked != null) {
-            context.contentResolver.takePersistableUriPermission(picked, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            viewModel.pickSound(soundLabel, picked.toString())
+    val picker =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { picked ->
+            if (picked != null) {
+                context.contentResolver.takePersistableUriPermission(
+                    picked,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+                viewModel.pickSound(soundLabel, picked.toString())
+            }
         }
-    }
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Column(Modifier.weight(1f)) {
             Text(label)
             Text(uri ?: "Bundled default", style = MaterialTheme.typography.bodySmall)
         }
         Button(onClick = { picker.launch(arrayOf("audio/*")) }) { Text("Choose") }
-        if (uri != null) OutlinedButton(onClick = { viewModel.clearSound(soundLabel) }) { Text("Default") }
+        if (uri != null)
+            OutlinedButton(onClick = { viewModel.clearSound(soundLabel) }) { Text("Default") }
     }
 }
-

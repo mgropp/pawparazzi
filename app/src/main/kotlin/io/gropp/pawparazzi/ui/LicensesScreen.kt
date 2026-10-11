@@ -34,36 +34,58 @@ private data class Credit(
     val note: String? = null,
 )
 
-private val appCredit = Credit(
-    name = "Pawparazzi",
-    author = "Martin Gropp",
-    license = "GNU General Public License v3.0",
-    url = "https://www.gnu.org/licenses/gpl-3.0.html",
-)
-
-private val soundCredits = listOf(
-    Credit("Cat sound (cat_default.wav)", "qubodup", "CC0 1.0", "https://freesound.org/people/qubodup/sounds/813119/"),
-    Credit("Dog sound (dog_default.wav)", "boop_7", "CC0 1.0", "https://freesound.org/s/684369/", note = "Cropped"),
-)
-
-private val modelCredits = listOf(
+private val appCredit =
     Credit(
-        "EfficientDet-Lite0 object detection model",
-        "Google (MediaPipe)",
-        "Apache License 2.0",
-        "https://ai.google.dev/edge/mediapipe/solutions/vision/object_detector",
-    ),
-)
+        name = "Pawparazzi",
+        author = "Martin Gropp",
+        license = "GNU General Public License v3.0",
+        url = "https://www.gnu.org/licenses/gpl-3.0.html",
+    )
+
+private val soundCredits =
+    listOf(
+        Credit(
+            "Cat sound (cat_default.wav)",
+            "qubodup",
+            "CC0 1.0",
+            "https://freesound.org/people/qubodup/sounds/813119/",
+        ),
+        Credit(
+            "Dog sound (dog_default.wav)",
+            "boop_7",
+            "CC0 1.0",
+            "https://freesound.org/s/684369/",
+            note = "Cropped",
+        ),
+    )
+
+private val modelCredits =
+    listOf(
+        Credit(
+            "EfficientDet-Lite0 object detection model",
+            "Google (MediaPipe)",
+            "Apache License 2.0",
+            "https://ai.google.dev/edge/mediapipe/solutions/vision/object_detector",
+        )
+    )
 
 @Composable
 fun LicensesScreen(onBack: () -> Unit) {
     val libraries by produceLibraries(R.raw.aboutlibraries)
 
-    Column(Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        Modifier.fillMaxSize().safeDrawingPadding().padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         OutlinedButton(onClick = onBack) { Text("Back") }
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             item { Header("This app") }
-            item { Text("Version ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium) }
+            item {
+                Text(
+                    "Version ${BuildConfig.VERSION_NAME}",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
             item { CreditItem(appCredit) }
             item { Header("Sounds") }
             items(soundCredits) { CreditItem(it) }
@@ -77,7 +99,11 @@ fun LicensesScreen(onBack: () -> Unit) {
 
 @Composable
 private fun Header(title: String) {
-    Text(title, style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+    Text(
+        title,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.padding(top = 12.dp),
+    )
 }
 
 @Composable
@@ -87,7 +113,9 @@ private fun CreditItem(credit: Credit) {
         Text(credit.name, style = MaterialTheme.typography.titleMedium)
         Text("${credit.author} · ${credit.license}", style = MaterialTheme.typography.bodyMedium)
         credit.note?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-        TextButton(onClick = { uriHandler.openUri(credit.url) }) { Text(credit.url, style = MaterialTheme.typography.bodySmall) }
+        TextButton(onClick = { uriHandler.openUri(credit.url) }) {
+            Text(credit.url, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 
@@ -96,16 +124,27 @@ private fun LibraryItem(library: Library) {
     val uriHandler = LocalUriHandler.current
     var expanded by rememberSaveable(library.uniqueId) { mutableStateOf(false) }
     val licenseNames = library.licenses.joinToString { it.name }
-    val author = library.developers.mapNotNull { it.name }.joinToString().ifEmpty { library.organization?.name.orEmpty() }
+    val author =
+        library.developers
+            .mapNotNull { it.name }
+            .joinToString()
+            .ifEmpty { library.organization?.name.orEmpty() }
     Column(Modifier.fillMaxWidth().clickable { expanded = !expanded }) {
         Text(library.name, style = MaterialTheme.typography.titleMedium)
         Text(
-            listOfNotNull(library.artifactVersion, author.ifEmpty { null }, licenseNames.ifEmpty { null }).joinToString(" · "),
+            listOfNotNull(
+                    library.artifactVersion,
+                    author.ifEmpty { null },
+                    licenseNames.ifEmpty { null },
+                )
+                .joinToString(" · "),
             style = MaterialTheme.typography.bodyMedium,
         )
         if (expanded) {
             library.website?.let { url ->
-                TextButton(onClick = { uriHandler.openUri(url) }) { Text(url, style = MaterialTheme.typography.bodySmall) }
+                TextButton(onClick = { uriHandler.openUri(url) }) {
+                    Text(url, style = MaterialTheme.typography.bodySmall)
+                }
             }
             library.licenses.forEach { license ->
                 license.licenseContent?.let { Text(it, style = MaterialTheme.typography.bodySmall) }

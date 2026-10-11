@@ -90,7 +90,9 @@ class SettingsValidatorTest {
 
     @Test
     fun blankSoundUriBecomesNull() {
-        assertThat(clamp(AppSettings(catSoundUri = " ", dogSoundUri = "content://x")).catSoundUri).isNull()
-        assertThat(clamp(AppSettings(dogSoundUri = "content://x")).dogSoundUri).isEqualTo("content://x")
+        assertThat(clamp(AppSettings(catSoundUri = " ", dogSoundUri = "content://x")).catSoundUri)
+            .isNull()
+        assertThat(clamp(AppSettings(dogSoundUri = "content://x")).dogSoundUri)
+            .isEqualTo("content://x")
     }
 }

@@ -43,100 +43,107 @@ class SettingsViewModelTest {
         SettingsViewModel(repository, soundChecker)
 
     @Test
-    fun okCheckWritesUriToCatLabel() = runTest(testDispatcher) {
-        val repository = newRepository()
-        val viewModel = newViewModel(repository)
+    fun okCheckWritesUriToCatLabel() =
+        runTest(testDispatcher) {
+            val repository = newRepository()
+            val viewModel = newViewModel(repository)
 
-        viewModel.pickSound(Label.CAT, "content://cat.mp3")
-        advanceUntilIdle()
+            viewModel.pickSound(Label.CAT, "content://cat.mp3")
+            advanceUntilIdle()
 
-        val settings = repository.settings.first()
-        assertThat(settings.catSoundUri).isEqualTo("content://cat.mp3")
-        assertThat(settings.dogSoundUri).isNull()
-        assertThat(checkedUris).containsExactly("content://cat.mp3")
-    }
-
-    @Test
-    fun okCheckWritesUriToDogLabel() = runTest(testDispatcher) {
-        val repository = newRepository()
-        val viewModel = newViewModel(repository)
-
-        viewModel.pickSound(Label.DOG, "content://dog.mp3")
-        advanceUntilIdle()
-
-        val settings = repository.settings.first()
-        assertThat(settings.dogSoundUri).isEqualTo("content://dog.mp3")
-        assertThat(settings.catSoundUri).isNull()
-    }
+            val settings = repository.settings.first()
+            assertThat(settings.catSoundUri).isEqualTo("content://cat.mp3")
+            assertThat(settings.dogSoundUri).isNull()
+            assertThat(checkedUris).containsExactly("content://cat.mp3")
+        }
 
     @Test
-    fun tooLongCheckSetsMessageAndLeavesSettingsUntouched() = runTest(testDispatcher) {
-        val repository = newRepository()
-        val viewModel = newViewModel(repository)
-        nextCheck = SoundCheck.TooLong(7_500)
+    fun okCheckWritesUriToDogLabel() =
+        runTest(testDispatcher) {
+            val repository = newRepository()
+            val viewModel = newViewModel(repository)
 
-        viewModel.pickSound(Label.CAT, "content://long.mp3")
-        advanceUntilIdle()
+            viewModel.pickSound(Label.DOG, "content://dog.mp3")
+            advanceUntilIdle()
 
-        assertThat(viewModel.message.value).isEqualTo("Sound is 7.5 s long; the limit is 5 s.")
-        assertThat(repository.settings.first()).isEqualTo(AppSettings())
-    }
-
-    @Test
-    fun unreadableCheckSetsMessageAndLeavesSettingsUntouched() = runTest(testDispatcher) {
-        val repository = newRepository()
-        val viewModel = newViewModel(repository)
-        nextCheck = SoundCheck.Unreadable
-
-        viewModel.pickSound(Label.DOG, "content://broken.mp3")
-        advanceUntilIdle()
-
-        assertThat(viewModel.message.value).isEqualTo("That file could not be read as audio.")
-        assertThat(repository.settings.first()).isEqualTo(AppSettings())
-    }
+            val settings = repository.settings.first()
+            assertThat(settings.dogSoundUri).isEqualTo("content://dog.mp3")
+            assertThat(settings.catSoundUri).isNull()
+        }
 
     @Test
-    fun dismissMessageClearsMessage() = runTest(testDispatcher) {
-        val repository = newRepository()
-        val viewModel = newViewModel(repository)
-        nextCheck = SoundCheck.Unreadable
-        viewModel.pickSound(Label.CAT, "content://broken.mp3")
-        advanceUntilIdle()
+    fun tooLongCheckSetsMessageAndLeavesSettingsUntouched() =
+        runTest(testDispatcher) {
+            val repository = newRepository()
+            val viewModel = newViewModel(repository)
+            nextCheck = SoundCheck.TooLong(7_500)
 
-        viewModel.dismissMessage()
+            viewModel.pickSound(Label.CAT, "content://long.mp3")
+            advanceUntilIdle()
 
-        assertThat(viewModel.message.value).isNull()
-    }
-
-    @Test
-    fun clearSoundNullsOnlyTheGivenLabel() = runTest(testDispatcher) {
-        val repository = newRepository()
-        val viewModel = newViewModel(repository)
-        viewModel.pickSound(Label.CAT, "content://cat.mp3")
-        viewModel.pickSound(Label.DOG, "content://dog.mp3")
-        advanceUntilIdle()
-
-        viewModel.clearSound(Label.CAT)
-        advanceUntilIdle()
-
-        val settings = repository.settings.first()
-        assertThat(settings.catSoundUri).isNull()
-        assertThat(settings.dogSoundUri).isEqualTo("content://dog.mp3")
-    }
+            assertThat(viewModel.message.value).isEqualTo("Sound is 7.5 s long; the limit is 5 s.")
+            assertThat(repository.settings.first()).isEqualTo(AppSettings())
+        }
 
     @Test
-    fun clearSoundNullsDogLabelOnly() = runTest(testDispatcher) {
-        val repository = newRepository()
-        val viewModel = newViewModel(repository)
-        viewModel.pickSound(Label.CAT, "content://cat.mp3")
-        viewModel.pickSound(Label.DOG, "content://dog.mp3")
-        advanceUntilIdle()
+    fun unreadableCheckSetsMessageAndLeavesSettingsUntouched() =
+        runTest(testDispatcher) {
+            val repository = newRepository()
+            val viewModel = newViewModel(repository)
+            nextCheck = SoundCheck.Unreadable
 
-        viewModel.clearSound(Label.DOG)
-        advanceUntilIdle()
+            viewModel.pickSound(Label.DOG, "content://broken.mp3")
+            advanceUntilIdle()
 
-        val settings = repository.settings.first()
-        assertThat(settings.dogSoundUri).isNull()
-        assertThat(settings.catSoundUri).isEqualTo("content://cat.mp3")
-    }
+            assertThat(viewModel.message.value).isEqualTo("That file could not be read as audio.")
+            assertThat(repository.settings.first()).isEqualTo(AppSettings())
+        }
+
+    @Test
+    fun dismissMessageClearsMessage() =
+        runTest(testDispatcher) {
+            val repository = newRepository()
+            val viewModel = newViewModel(repository)
+            nextCheck = SoundCheck.Unreadable
+            viewModel.pickSound(Label.CAT, "content://broken.mp3")
+            advanceUntilIdle()
+
+            viewModel.dismissMessage()
+
+            assertThat(viewModel.message.value).isNull()
+        }
+
+    @Test
+    fun clearSoundNullsOnlyTheGivenLabel() =
+        runTest(testDispatcher) {
+            val repository = newRepository()
+            val viewModel = newViewModel(repository)
+            viewModel.pickSound(Label.CAT, "content://cat.mp3")
+            viewModel.pickSound(Label.DOG, "content://dog.mp3")
+            advanceUntilIdle()
+
+            viewModel.clearSound(Label.CAT)
+            advanceUntilIdle()
+
+            val settings = repository.settings.first()
+            assertThat(settings.catSoundUri).isNull()
+            assertThat(settings.dogSoundUri).isEqualTo("content://dog.mp3")
+        }
+
+    @Test
+    fun clearSoundNullsDogLabelOnly() =
+        runTest(testDispatcher) {
+            val repository = newRepository()
+            val viewModel = newViewModel(repository)
+            viewModel.pickSound(Label.CAT, "content://cat.mp3")
+            viewModel.pickSound(Label.DOG, "content://dog.mp3")
+            advanceUntilIdle()
+
+            viewModel.clearSound(Label.DOG)
+            advanceUntilIdle()
+
+            val settings = repository.settings.first()
+            assertThat(settings.dogSoundUri).isNull()
+            assertThat(settings.catSoundUri).isEqualTo("content://cat.mp3")
+        }
 }

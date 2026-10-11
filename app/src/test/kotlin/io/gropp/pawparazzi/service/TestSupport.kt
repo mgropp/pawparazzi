@@ -30,7 +30,11 @@ class FakeCamera : CameraPort {
     var bindFailure: Exception? = null
     var rebindFailure: Exception? = null
 
-    override suspend fun bind(fps: Int, rotation: Int, surfaceProvider: Preview.SurfaceProvider?): String? {
+    override suspend fun bind(
+        fps: Int,
+        rotation: Int,
+        surfaceProvider: Preview.SurfaceProvider?,
+    ): String? {
         calls += "bind(fps=$fps,rotation=$rotation)"
         bindFailure?.let { throw it }
         return captureResolution

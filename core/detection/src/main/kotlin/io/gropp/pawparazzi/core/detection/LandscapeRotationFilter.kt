@@ -14,6 +14,7 @@ class LandscapeRotationFilter(initial: Int = ROTATION_90) {
         const val ROTATION_90 = 1
         const val ROTATION_270 = 3
 
-        fun isLandscape(rotation: Int): Boolean = rotation == ROTATION_90 || rotation == ROTATION_270
+        fun isLandscape(rotation: Int): Boolean =
+            rotation == ROTATION_90 || rotation == ROTATION_270
     }
 }

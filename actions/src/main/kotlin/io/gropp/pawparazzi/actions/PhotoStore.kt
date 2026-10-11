@@ -20,36 +20,45 @@ class PhotoStore @Inject constructor(@ApplicationContext private val context: Co
 
     fun freeBytes(): Long = StatFs(Environment.getExternalStorageDirectory().path).availableBytes
 
-    suspend fun enforceCap(capBytes: Long) = withContext(Dispatchers.IO) {
-        mutex.withLock {
-            val victims = CapPlanner.selectForDeletion(queryOwnedPhotos(), capBytes)
-            for (photo in victims) {
-                val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, photo.id)
-                try {
-                    context.contentResolver.delete(uri, null, null)
-                } catch (e: SecurityException) {
-                    Log.w(TAG, "Cannot delete ${photo.id}", e)
+    suspend fun enforceCap(capBytes: Long) =
+        withContext(Dispatchers.IO) {
+            mutex.withLock {
+                val victims = CapPlanner.selectForDeletion(queryOwnedPhotos(), capBytes)
+                for (photo in victims) {
+                    val uri =
+                        ContentUris.withAppendedId(
+                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                            photo.id,
+                        )
+                    try {
+                        context.contentResolver.delete(uri, null, null)
+                    } catch (e: SecurityException) {
+                        Log.w(TAG, "Cannot delete ${photo.id}", e)
+                    }
                 }
+                if (victims.isNotEmpty())
+                    Log.i(TAG, "Deleted ${victims.size} photos to enforce cap")
             }
-            if (victims.isNotEmpty()) Log.i(TAG, "Deleted ${victims.size} photos to enforce cap")
         }
-    }
 
     private fun queryOwnedPhotos(): List<StoredPhoto> {
         val photos = mutableListOf<StoredPhoto>()
-        context.contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(MediaStore.Images.Media._ID, MediaStore.Images.Media.SIZE),
-            "${MediaStore.Images.Media.RELATIVE_PATH} LIKE ? AND " +
-                "${MediaStore.Images.Media.OWNER_PACKAGE_NAME} = ? AND " +
-                "${MediaStore.Images.Media.IS_PENDING} = 0",
-            arrayOf("${PhotoNaming.RELATIVE_PATH}/%", context.packageName),
-            "${MediaStore.Images.Media.DATE_ADDED} ASC, ${MediaStore.Images.Media._ID} ASC",
-        )?.use { cursor ->
-            val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
-            while (cursor.moveToNext()) photos += StoredPhoto(cursor.getLong(idCol), cursor.getLong(sizeCol))
-        }
+        context.contentResolver
+            .query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                arrayOf(MediaStore.Images.Media._ID, MediaStore.Images.Media.SIZE),
+                "${MediaStore.Images.Media.RELATIVE_PATH} LIKE ? AND " +
+                    "${MediaStore.Images.Media.OWNER_PACKAGE_NAME} = ? AND " +
+                    "${MediaStore.Images.Media.IS_PENDING} = 0",
+                arrayOf("${PhotoNaming.RELATIVE_PATH}/%", context.packageName),
+                "${MediaStore.Images.Media.DATE_ADDED} ASC, ${MediaStore.Images.Media._ID} ASC",
+            )
+            ?.use { cursor ->
+                val idCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.SIZE)
+                while (cursor.moveToNext()) photos +=
+                    StoredPhoto(cursor.getLong(idCol), cursor.getLong(sizeCol))
+            }
         return photos
     }
 

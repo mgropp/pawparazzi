@@ -52,18 +52,21 @@ class DetectionCoordinatorTest {
             thermalPolicy = ThermalPolicy(),
         )
 
-    private fun TestScope.startedCoordinator() = coordinator().also {
-        it.start()
-        runCurrent()
-    }
+    private fun TestScope.startedCoordinator() =
+        coordinator().also {
+            it.start()
+            runCurrent()
+        }
 
-    private fun TestScope.tickSeconds(seconds: Int) = repeat(seconds) {
-        clock.advance(1000)
-        advanceTimeBy(1000)
-        runCurrent()
-    }
+    private fun TestScope.tickSeconds(seconds: Int) =
+        repeat(seconds) {
+            clock.advance(1000)
+            advanceTimeBy(1000)
+            runCurrent()
+        }
 
-    private val warnings get() = state.state.value.warnings
+    private val warnings
+        get() = state.state.value.warnings
 
     @Test
     fun startBindsCameraWithSettingsAndPublishesCaptureResolution() = runTest {
@@ -96,7 +99,12 @@ class DetectionCoordinatorTest {
     fun thermalPauseTearsEverythingDown() = runTest {
         val coordinator = startedCoordinator()
         val detector = coordinator.detector!!
-        state.update { it.copy(tracks = listOf(io.gropp.pawparazzi.state.TrackUi(1, Label.CAT, 0.9f, box(0.5f, 0.5f)))) }
+        state.update {
+            it.copy(
+                tracks =
+                    listOf(io.gropp.pawparazzi.state.TrackUi(1, Label.CAT, 0.9f, box(0.5f, 0.5f)))
+            )
+        }
 
         coordinator.onThermalStatus(CRITICAL)
         runCurrent()
@@ -316,7 +324,7 @@ class DetectionCoordinatorTest {
         startedCoordinator()
         camera.calls.clear()
 
-        surfaceFlow.value = Preview.SurfaceProvider { }
+        surfaceFlow.value = Preview.SurfaceProvider {}
         runCurrent()
 
         assertThat(camera.calls).containsExactly("setSurfaceProvider(true)")
@@ -325,7 +333,12 @@ class DetectionCoordinatorTest {
     @Test
     fun acceptedLandscapeRotationSetsTargetRotationAndResetsPipeline() = runTest {
         val coordinator = startedCoordinator()
-        state.update { it.copy(tracks = listOf(io.gropp.pawparazzi.state.TrackUi(1, Label.CAT, 0.9f, box(0.5f, 0.5f)))) }
+        state.update {
+            it.copy(
+                tracks =
+                    listOf(io.gropp.pawparazzi.state.TrackUi(1, Label.CAT, 0.9f, box(0.5f, 0.5f)))
+            )
+        }
         camera.calls.clear()
 
         coordinator.onRotation(LandscapeRotationFilter.ROTATION_270)
@@ -337,7 +350,12 @@ class DetectionCoordinatorTest {
     @Test
     fun portraitAndUnchangedRotationsAreIgnored() = runTest {
         val coordinator = startedCoordinator()
-        state.update { it.copy(tracks = listOf(io.gropp.pawparazzi.state.TrackUi(1, Label.CAT, 0.9f, box(0.5f, 0.5f)))) }
+        state.update {
+            it.copy(
+                tracks =
+                    listOf(io.gropp.pawparazzi.state.TrackUi(1, Label.CAT, 0.9f, box(0.5f, 0.5f)))
+            )
+        }
         camera.calls.clear()
 
         coordinator.onRotation(0)

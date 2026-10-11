@@ -14,8 +14,9 @@ class DetectionPipelineTest {
     private var wallClockMs = 1_000_000L
     private val pipeline = DetectionPipeline(settings, state, { wallClockMs }, { triggers += it })
 
-    private fun feed(vararg timestamps: Long) =
-        timestamps.forEach { pipeline.onDetections(frame(it, detection())) }
+    private fun feed(vararg timestamps: Long) = timestamps.forEach {
+        pipeline.onDetections(frame(it, detection()))
+    }
 
     @Test
     fun confirmedTrackTriggersOnceAndIsPublished() {
@@ -65,11 +66,12 @@ class DetectionPipelineTest {
 
     @Test
     fun maxResultsIsReadForEveryFrame() {
-        val detections = arrayOf(
-            detection(box = box(0.15f, 0.15f)),
-            detection(box = box(0.5f, 0.5f)),
-            detection(box = box(0.85f, 0.85f)),
-        )
+        val detections =
+            arrayOf(
+                detection(box = box(0.15f, 0.15f)),
+                detection(box = box(0.5f, 0.5f)),
+                detection(box = box(0.85f, 0.85f)),
+            )
         settings.value = settings.value.copy(maxResults = 3)
         pipeline.onDetections(frame(0, *detections))
         assertThat(state.state.value.tracks).hasSize(3)

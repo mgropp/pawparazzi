@@ -17,7 +17,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor(
+class SettingsViewModel
+@Inject
+constructor(
     private val repository: SettingsRepository,
     private val soundChecker: SoundChecker,
 ) : ViewModel() {
@@ -42,14 +44,16 @@ class SettingsViewModel @Inject constructor(
     fun pickSound(label: Label, uri: String) {
         viewModelScope.launch {
             when (val check = soundChecker.check(uri)) {
-                SoundCheck.Ok -> repository.update {
-                    when (label) {
-                        Label.CAT -> it.copy(catSoundUri = uri)
-                        Label.DOG -> it.copy(dogSoundUri = uri)
+                SoundCheck.Ok ->
+                    repository.update {
+                        when (label) {
+                            Label.CAT -> it.copy(catSoundUri = uri)
+                            Label.DOG -> it.copy(dogSoundUri = uri)
+                        }
                     }
-                }
                 is SoundCheck.TooLong ->
-                    _message.value = "Sound is ${check.durationMs / 1000.0} s long; the limit is ${SoundPlayer.MAX_DURATION_MS / 1000} s."
+                    _message.value =
+                        "Sound is ${check.durationMs / 1000.0} s long; the limit is ${SoundPlayer.MAX_DURATION_MS / 1000} s."
                 SoundCheck.Unreadable -> _message.value = "That file could not be read as audio."
             }
         }

@@ -20,12 +20,15 @@ data class CaptureRequest(val triggers: List<Trigger>)
 
 sealed interface CaptureEvent {
     data class Saved(val displayName: String) : CaptureEvent
+
     data class LowStorage(val freeBytes: Long) : CaptureEvent
+
     data object StorageOk : CaptureEvent
 }
 
 interface StorageGuard {
     fun freeBytes(): Long
+
     suspend fun enforceCap(capBytes: Long)
 }
 
@@ -114,40 +117,47 @@ private class ImageCapturePhotoTaker(
     private val imageCapture: () -> ImageCapture?,
 ) : PhotoTaker {
     override suspend fun take(name: String): Boolean {
-        val capture = imageCapture() ?: run {
-            Log.w(TAG, "No ImageCapture bound, skipping photo")
-            return false
-        }
-        val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, name)
-            put(MediaStore.Images.Media.MIME_TYPE, PhotoNaming.MIME_TYPE)
-            put(MediaStore.Images.Media.RELATIVE_PATH, PhotoNaming.RELATIVE_PATH)
-        }
-        val options = ImageCapture.OutputFileOptions.Builder(
-            context.contentResolver,
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            values,
-        ).build()
+        val capture =
+            imageCapture()
+                ?: run {
+                    Log.w(TAG, "No ImageCapture bound, skipping photo")
+                    return false
+                }
+        val values =
+            ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, name)
+                put(MediaStore.Images.Media.MIME_TYPE, PhotoNaming.MIME_TYPE)
+                put(MediaStore.Images.Media.RELATIVE_PATH, PhotoNaming.RELATIVE_PATH)
+            }
+        val options =
+            ImageCapture.OutputFileOptions.Builder(
+                    context.contentResolver,
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    values,
+                )
+                .build()
         return takePicture(capture, options)
     }
 
-    private suspend fun takePicture(capture: ImageCapture, options: ImageCapture.OutputFileOptions): Boolean =
-        suspendCancellableCoroutine { cont ->
-            capture.takePicture(
-                options,
-                ContextCompat.getMainExecutor(context),
-                object : ImageCapture.OnImageSavedCallback {
-                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                        cont.resume(true)
-                    }
+    private suspend fun takePicture(
+        capture: ImageCapture,
+        options: ImageCapture.OutputFileOptions,
+    ): Boolean = suspendCancellableCoroutine { cont ->
+        capture.takePicture(
+            options,
+            ContextCompat.getMainExecutor(context),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    cont.resume(true)
+                }
 
-                    override fun onError(exception: ImageCaptureException) {
-                        Log.e(TAG, "takePicture failed", exception)
-                        cont.resume(false)
-                    }
-                },
-            )
-        }
+                override fun onError(exception: ImageCaptureException) {
+                    Log.e(TAG, "takePicture failed", exception)
+                    cont.resume(false)
+                }
+            },
+        )
+    }
 }
 
 private const val TAG = "CaptureQueue"
