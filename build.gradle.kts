@@ -13,6 +13,6 @@ subprojects {
         compilerOptions.allWarningsAsErrors.set(true)
     }
     tasks.withType<JavaCompile>().configureEach {
-        options.compilerArgs.add("-Werror")
+        options.compilerArgs.addAll(listOf("-Xlint:all,-dangling-doc-comments,-processing", "-Werror"))
     }
 }
