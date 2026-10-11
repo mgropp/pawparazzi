@@ -27,6 +27,8 @@ sealed interface SoundCheck {
     data object Unreadable : SoundCheck
 }
 
+enum class PlayResult { PLAYED, NOT_LOADED, REFUSED }
+
 @Singleton
 class SoundPlayer @Inject constructor(@ApplicationContext private val context: Context) {
     private class Slot(var uri: String?, var sampleId: Int = 0, var loaded: Boolean = false)
@@ -34,6 +36,7 @@ class SoundPlayer @Inject constructor(@ApplicationContext private val context: C
     private val lock = Any()
     private val slots = mutableMapOf<Label, Slot>()
     private var soundPool: SoundPool? = null
+    private var loadRequestCounter = 0
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
     private val _mediaMuted = MutableStateFlow(readMuted())
@@ -95,16 +98,24 @@ class SoundPlayer @Inject constructor(@ApplicationContext private val context: C
         }
     }
 
-    fun play(label: Label) {
+    internal val loadRequestCount: Int get() = synchronized(lock) { loadRequestCounter }
+
+    internal fun isLoaded(label: Label): Boolean = synchronized(lock) { slots[label]?.loaded == true }
+
+    fun play(label: Label): PlayResult {
         val playId = synchronized(lock) {
             val slot = slots[label]
             if (slot == null || !slot.loaded) {
                 Log.w(TAG, "Sound for $label not loaded, skipping")
-                return
+                return PlayResult.NOT_LOADED
             }
             soundPool?.play(slot.sampleId, 1f, 1f, 1, 0, 1f)
         }
-        if (playId == 0) Log.w(TAG, "SoundPool refused to play $label")
+        if (playId == null || playId == 0) {
+            Log.w(TAG, "SoundPool refused to play $label")
+            return PlayResult.REFUSED
+        }
+        return PlayResult.PLAYED
     }
 
     suspend fun check(uri: Uri): SoundCheck = withContext(Dispatchers.IO) {
@@ -128,12 +139,14 @@ class SoundPlayer @Inject constructor(@ApplicationContext private val context: C
     private fun readMuted(): Boolean = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) == 0
 
     private fun loadUser(pool: SoundPool, uri: String): Int {
+        loadRequestCounter++
         val afd = context.contentResolver.openAssetFileDescriptor(Uri.parse(uri), "r")
             ?: error("No file descriptor for $uri")
         return afd.use { pool.load(it, 1) }.also { check(it != 0) { "SoundPool.load returned 0" } }
     }
 
     private fun loadDefault(pool: SoundPool, label: Label, slot: Slot) {
+        loadRequestCounter++
         slot.sampleId = pool.load(context, defaultResource(label), 1)
     }
 
