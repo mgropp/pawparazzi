@@ -77,8 +77,11 @@ Base package `io.gropp.pawparazzi`; modules use sub-packages (`...core.detection
 ## Git
 
 - Never run `git push`; tell the user when a branch is ready.
-- Keep each commit a working build with formatted code. Existing history uses short imperative subjects, some with
-  a leading emoji.
+- Keep each commit a working build with formatted code.
+- Start every commit subject with a [gitmoji](https://gitmoji.dev) (the emoji character, not the `:code:`), then a
+  short imperative subject, e.g. `🐛 camera: fix rebind after thermal pause`. Pick the emoji that matches the change
+  type (✨ feature, 🐛 fix, ♻️ refactor, ✅ tests, 📝 docs, 🔨 build, 👷 CI, 🎨 formatting).
+- Put the rationale in the commit body, since the source carries no comments.
 
 ## Device-only verification
 
