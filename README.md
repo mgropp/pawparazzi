@@ -24,22 +24,8 @@ Photos are viewed in the phone's gallery. Older photos beyond the configured sto
 
 ## Keeping Pawparazzi alive
 
-Android and vendor ROMs aggressively stop background apps. Do all of the following on the target phone, then check
-`dontkillmyapp.com` for your model.
-
-- **Stock Android / Pixel**: Settings > Apps > Pawparazzi > App battery usage > *Unrestricted*. Accept the in-app
-  battery-optimization prompt. (Pixel 4a menu paths: to be confirmed during hardening.)
-- **Samsung**: Settings > Battery > Background usage limits: remove Pawparazzi from *Sleeping apps* and
-  *Deep sleeping apps*, add it to *Never sleeping apps*. Set battery usage to *Unrestricted*.
-- **Xiaomi / MIUI**: Settings > Apps > Manage apps > Pawparazzi > Autostart: on; Battery saver: *No restrictions*;
-  lock the app in the recent-apps list.
-- **Huawei / EMUI**: Settings > Battery > App launch > Pawparazzi: *Manage manually*, enable auto-launch, secondary
-  launch and run in background.
-- **OnePlus / OxygenOS**: Settings > Battery > Battery optimization > Pawparazzi: *Don't optimize*; enable
-  *Allow background activity* and *Allow auto-launch*; lock the app in recents.
-- **Oppo / ColorOS**: Settings > Battery > Pawparazzi: allow background running and auto-launch; lock the app in
-  recents.
-- Also whitelist the app in any "memory cleaner" or "phone manager" app.
+Android tends to aggressively stop background apps.
+Check [dontkillmyapp.com](https://dontkillmyapp.com) for help.
 
 ## Heat
 
