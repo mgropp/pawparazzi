@@ -36,7 +36,6 @@ data class BoundSummary(
     val fpsRange: FpsRange?,
 )
 
-@OptIn(ExperimentalCamera2Interop::class)
 class CameraController(
     private val context: Context,
     private val lifecycleOwner: LifecycleOwner,

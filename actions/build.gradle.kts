@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "io.gropp.pawparazzi.actions"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 29

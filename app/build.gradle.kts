@@ -16,7 +16,7 @@ val appVersionCode = Regex("""^(\d+)\.(\d+)\.(\d+)""").find(appVersionName)
 
 android {
     namespace = "io.gropp.pawparazzi"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "io.gropp.pawparazzi"
