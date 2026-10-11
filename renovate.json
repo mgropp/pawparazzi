@@ -3,5 +3,5 @@
     "extends": [
         "config:recommended"
     ],
-    "commitMessage": "\u2b06\ufe0f {{{commitMessagePrefix}}} {{{commitMessageAction}}} {{{commitMessageTopic}}} {{{commitMessageExtra}}} {{{commitMessageSuffix}}}"
+    "commitMessagePrefix": "\u2b06\ufe0f"
 }
