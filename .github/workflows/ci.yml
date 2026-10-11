@@ -1,4 +1,4 @@
-name: Build debug APK
+name: CI
 
 on:
   push:
@@ -6,8 +6,15 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -30,12 +37,5 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
 
-      - name: Build debug APK
+      - name: Assemble debug build
         run: ./gradlew assembleDebug --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/*.apk
-          retention-days: 14
