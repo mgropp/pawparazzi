@@ -24,7 +24,7 @@ android {
 
 val modelFile = layout.projectDirectory.file("src/main/assets/efficientdet_lite0.tflite")
 
-val downloadModel by tasks.registering {
+val downloadModel = tasks.register("downloadModel") {
     outputs.file(modelFile)
     onlyIf { !modelFile.asFile.exists() }
     doLast {
