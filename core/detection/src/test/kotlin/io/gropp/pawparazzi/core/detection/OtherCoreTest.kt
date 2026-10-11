@@ -8,12 +8,16 @@ class DetectionFilterTest {
 
     @Test
     fun dropsBelowThreshold() {
-        assertThat(DetectionFilter.apply(dets, 0.5f, 20).map { it.score }).containsExactly(0.9f, 0.7f, 0.6f).inOrder()
+        assertThat(DetectionFilter.apply(dets, 0.5f, 20).map { it.score })
+            .containsExactly(0.9f, 0.7f, 0.6f)
+            .inOrder()
     }
 
     @Test
     fun keepsTopMaxResults() {
-        assertThat(DetectionFilter.apply(dets, 0.1f, 2).map { it.score }).containsExactly(0.9f, 0.7f).inOrder()
+        assertThat(DetectionFilter.apply(dets, 0.1f, 2).map { it.score })
+            .containsExactly(0.9f, 0.7f)
+            .inOrder()
     }
 
     @Test
@@ -164,7 +168,14 @@ class ThermalPolicyTest {
 class FpsRangeSelectorTest {
     @Test
     fun picksSmallestUpperAtLeastTargetPreferringVariable() {
-        val ranges = listOf(FpsRange(15, 15), FpsRange(30, 30), FpsRange(10, 30), FpsRange(15, 24), FpsRange(24, 24))
+        val ranges =
+            listOf(
+                FpsRange(15, 15),
+                FpsRange(30, 30),
+                FpsRange(10, 30),
+                FpsRange(15, 24),
+                FpsRange(24, 24),
+            )
         assertThat(FpsRangeSelector.select(ranges, 5)).isEqualTo(FpsRange(15, 15))
         assertThat(FpsRangeSelector.select(ranges, 20)).isEqualTo(FpsRange(15, 24))
         assertThat(FpsRangeSelector.select(ranges, 30)).isEqualTo(FpsRange(10, 30))
@@ -172,7 +183,8 @@ class FpsRangeSelectorTest {
 
     @Test
     fun fallsBackToHighestWhenNoneEligible() {
-        assertThat(FpsRangeSelector.select(listOf(FpsRange(5, 5), FpsRange(7, 7)), 30)).isEqualTo(FpsRange(7, 7))
+        assertThat(FpsRangeSelector.select(listOf(FpsRange(5, 5), FpsRange(7, 7)), 30))
+            .isEqualTo(FpsRange(7, 7))
     }
 
     @Test

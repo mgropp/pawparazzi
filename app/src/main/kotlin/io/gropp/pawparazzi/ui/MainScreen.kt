@@ -79,7 +79,10 @@ fun MainScreen(
             DetectionOverlay(state, Modifier.fillMaxSize())
         }
         Column(
-            Modifier.width(320.dp).fillMaxHeight().padding(12.dp).verticalScroll(rememberScrollState()),
+            Modifier.width(320.dp)
+                .fillMaxHeight()
+                .padding(12.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (!systemStatus.cameraGranted) {
@@ -93,16 +96,26 @@ fun MainScreen(
             }
             OutlinedButton(onClick = onOpenSettings) { Text("Settings") }
             StatusLine(state)
-            WarningList(state, mediaMuted, systemStatus, onRequestPermissions, onRequestBatteryExemption)
+            WarningList(
+                state,
+                mediaMuted,
+                systemStatus,
+                onRequestPermissions,
+                onRequestBatteryExemption,
+            )
         }
     }
 }
 
 @Composable
 private fun StatusLine(state: DetectionUiState) {
-    val lastTrigger = state.lastTriggerWallMs?.let { DateFormat.getTimeInstance().format(Date(it)) } ?: "never"
+    val lastTrigger =
+        state.lastTriggerWallMs?.let { DateFormat.getTimeInstance().format(Date(it)) } ?: "never"
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(if (state.running) "Running" else "Stopped", style = MaterialTheme.typography.titleMedium)
+        Text(
+            if (state.running) "Running" else "Stopped",
+            style = MaterialTheme.typography.titleMedium,
+        )
         Text("FPS: ${"%.1f".format(state.effectiveFps)}")
         Text("Tracks: ${state.tracks.size}")
         Text("Last trigger: $lastTrigger")
@@ -122,18 +135,28 @@ private fun WarningList(
     val warn = MaterialTheme.colorScheme.error
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (mediaMuted) Text("Media volume is 0, sounds are silent.", color = warn)
-        if (Warning.SOUND_FALLBACK in state.warnings) Text("A custom sound could not be loaded; the default is used.", color = warn)
+        if (Warning.SOUND_FALLBACK in state.warnings)
+            Text("A custom sound could not be loaded; the default is used.", color = warn)
         if (Warning.CAMERA_ERROR in state.warnings) Text("Camera error.", color = warn)
-        if (Warning.REPEATED_REBINDS in state.warnings) Text("Camera is not delivering frames; retrying.", color = warn)
+        if (Warning.REPEATED_REBINDS in state.warnings)
+            Text("Camera is not delivering frames; retrying.", color = warn)
         if (state.thermalMode == ThermalMode.PAUSED) Text("Paused: phone too hot.", color = warn)
-        else if (state.thermalMode == ThermalMode.THROTTLED) Text("Phone is hot: analysis limited to 1 FPS.", color = warn)
-        if (Warning.LOW_STORAGE in state.warnings) Text("Low storage: photos are skipped.", color = warn)
+        else if (state.thermalMode == ThermalMode.THROTTLED)
+            Text("Phone is hot: analysis limited to 1 FPS.", color = warn)
+        if (Warning.LOW_STORAGE in state.warnings)
+            Text("Low storage: photos are skipped.", color = warn)
         if (!systemStatus.notificationsGranted) {
-            Text("Notification permission missing; the status notification is hidden.", color = warn)
+            Text(
+                "Notification permission missing; the status notification is hidden.",
+                color = warn,
+            )
             OutlinedButton(onClick = onRequestPermissions) { Text("Allow notifications") }
         }
         if (!systemStatus.batteryExempt) {
-            Text("Not exempt from battery optimization. See README, \"Keeping Pawparazzi alive\".", color = warn)
+            Text(
+                "Not exempt from battery optimization. See README, \"Keeping Pawparazzi alive\".",
+                color = warn,
+            )
             OutlinedButton(onClick = onRequestBatteryExemption) { Text("Exempt app") }
         }
     }
@@ -160,7 +183,12 @@ private fun DetectionOverlay(state: DetectionUiState, modifier: Modifier) {
             val top = offsetY + track.box.top * imageH * scale
             val width = (track.box.right - track.box.left) * imageW * scale
             val height = (track.box.bottom - track.box.top) * imageH * scale
-            drawRect(Color.Green, Offset(left, top), Size(width, height), style = Stroke(width = 4f))
+            drawRect(
+                Color.Green,
+                Offset(left, top),
+                Size(width, height),
+                style = Stroke(width = 4f),
+            )
             drawContext.canvas.nativeCanvas.drawText(
                 "${track.label.name.lowercase()} ${"%.2f".format(track.score)} #${track.id}",
                 left + 6f,

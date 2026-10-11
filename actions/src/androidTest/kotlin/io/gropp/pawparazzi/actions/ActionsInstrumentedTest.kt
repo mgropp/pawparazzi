@@ -92,12 +92,14 @@ class ActionsInstrumentedTest {
         val uri = Uri.fromFile(copyAssetToCache("tone_6s.wav"))
         val result = player.check(uri)
         assertThat(result).isInstanceOf(SoundCheck.TooLong::class.java)
-        assertThat((result as SoundCheck.TooLong).durationMs).isGreaterThan(SoundPlayer.MAX_DURATION_MS)
+        assertThat((result as SoundCheck.TooLong).durationMs)
+            .isGreaterThan(SoundPlayer.MAX_DURATION_MS)
     }
 
     @Test
     fun soundCheckRejectsNonAudioFile(): Unit = runBlocking {
-        val textFile = File(context.cacheDir, "not_audio.txt").apply { writeText("definitely not audio") }
+        val textFile =
+            File(context.cacheDir, "not_audio.txt").apply { writeText("definitely not audio") }
         assertThat(player.check(Uri.fromFile(textFile))).isEqualTo(SoundCheck.Unreadable)
     }
 
@@ -116,7 +118,12 @@ class ActionsInstrumentedTest {
     @Test
     fun photoStoreNeverDeletesImagesOutsideAppFolder(): Unit = runBlocking {
         val store = PhotoStore(context)
-        val outside = insertPhoto("cap_test_outside.jpg", pending = 0, relativePath = "Pictures/PawparazziOutside")
+        val outside =
+            insertPhoto(
+                "cap_test_outside.jpg",
+                pending = 0,
+                relativePath = "Pictures/PawparazziOutside",
+            )
         val inside = insertPhoto("cap_test_inside.jpg", pending = 0)
         store.enforceCap(0)
         assertThat(exists(inside)).isFalse()
@@ -137,23 +144,34 @@ class ActionsInstrumentedTest {
         return target
     }
 
-    private fun insertPhoto(name: String, pending: Int, relativePath: String = PhotoNaming.RELATIVE_PATH): Uri {
-        val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, name)
-            put(MediaStore.Images.Media.MIME_TYPE, PhotoNaming.MIME_TYPE)
-            put(MediaStore.Images.Media.RELATIVE_PATH, relativePath)
-            put(MediaStore.Images.Media.IS_PENDING, pending)
-        }
-        val uri = checkNotNull(resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values))
+    private fun insertPhoto(
+        name: String,
+        pending: Int,
+        relativePath: String = PhotoNaming.RELATIVE_PATH,
+    ): Uri {
+        val values =
+            ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, name)
+                put(MediaStore.Images.Media.MIME_TYPE, PhotoNaming.MIME_TYPE)
+                put(MediaStore.Images.Media.RELATIVE_PATH, relativePath)
+                put(MediaStore.Images.Media.IS_PENDING, pending)
+            }
+        val uri =
+            checkNotNull(resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values))
         insertedPhotos += uri
         checkNotNull(resolver.openOutputStream(uri)).use { it.write(ByteArray(PHOTO_SIZE_BYTES)) }
         return uri
     }
 
     private fun exists(uri: Uri): Boolean {
-        val queryUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, ContentUris.parseId(uri))
+        val queryUri =
+            ContentUris.withAppendedId(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                ContentUris.parseId(uri),
+            )
         val pendingIncluded = MediaStore.setIncludePending(queryUri)
-        return resolver.query(pendingIncluded, arrayOf(MediaStore.Images.Media._ID), null, null, null)
+        return resolver
+            .query(pendingIncluded, arrayOf(MediaStore.Images.Media._ID), null, null, null)
             ?.use { it.count > 0 } ?: false
     }
 

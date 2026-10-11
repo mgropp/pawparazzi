@@ -4,8 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
@@ -22,36 +22,37 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 class SettingsRepositoryTest {
-    @get:Rule
-    val temporaryFolder = TemporaryFolder()
+    @get:Rule val temporaryFolder = TemporaryFolder()
 
     private lateinit var storeScope: CoroutineScope
     private lateinit var dataStore: DataStore<Preferences>
     private lateinit var repository: SettingsRepository
 
-    private val nonDefaultSettings = AppSettings(
-        fps = 12,
-        scoreThreshold = 0.7f,
-        cooldownSec = 90,
-        catSoundUri = "content://sounds/cat",
-        dogSoundUri = "content://sounds/dog",
-        storageCapGb = 7.5f,
-        gracePeriodSec = 8.5f,
-        iouThreshold = 0.45f,
-        centerDistThreshold = 1.25f,
-        minHits = 4,
-        labelDedupeIou = 0.75f,
-        minFreeSpaceGb = 3.5f,
-        maxResults = 9,
-        labelDecay = 0.65f,
-    )
+    private val nonDefaultSettings =
+        AppSettings(
+            fps = 12,
+            scoreThreshold = 0.7f,
+            cooldownSec = 90,
+            catSoundUri = "content://sounds/cat",
+            dogSoundUri = "content://sounds/dog",
+            storageCapGb = 7.5f,
+            gracePeriodSec = 8.5f,
+            iouThreshold = 0.45f,
+            centerDistThreshold = 1.25f,
+            minHits = 4,
+            labelDedupeIou = 0.75f,
+            minFreeSpaceGb = 3.5f,
+            maxResults = 9,
+            labelDecay = 0.65f,
+        )
 
     @Before
     fun setUp() {
         storeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        dataStore = PreferenceDataStoreFactory.create(scope = storeScope) {
-            temporaryFolder.newFile("settings.preferences_pb").also { it.delete() }
-        }
+        dataStore =
+            PreferenceDataStoreFactory.create(scope = storeScope) {
+                temporaryFolder.newFile("settings.preferences_pb").also { it.delete() }
+            }
         repository = SettingsRepository(dataStore)
     }
 

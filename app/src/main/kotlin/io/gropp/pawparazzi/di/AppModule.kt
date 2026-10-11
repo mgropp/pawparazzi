@@ -17,14 +17,13 @@ import io.gropp.pawparazzi.core.detection.Clock
 import io.gropp.pawparazzi.core.settings.SettingsRepository
 import javax.inject.Singleton
 
-private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+private val Context.settingsDataStore: DataStore<Preferences> by
+    preferencesDataStore(name = "settings")
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    @Provides
-    @Singleton
-    fun clock(): Clock = Clock { SystemClock.elapsedRealtime() }
+    @Provides @Singleton fun clock(): Clock = Clock { SystemClock.elapsedRealtime() }
 
     @Provides
     @Singleton
@@ -33,5 +32,7 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun soundChecker(soundPlayer: SoundPlayer): SoundChecker = SoundChecker { soundPlayer.check(Uri.parse(it)) }
+    fun soundChecker(soundPlayer: SoundPlayer): SoundChecker = SoundChecker {
+        soundPlayer.check(Uri.parse(it))
+    }
 }

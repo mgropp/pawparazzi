@@ -4,14 +4,26 @@ import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.min
 
-enum class Label { CAT, DOG }
+enum class Label {
+    CAT,
+    DOG,
+}
 
 data class NormBox(val left: Float, val top: Float, val right: Float, val bottom: Float) {
-    val width: Float get() = right - left
-    val height: Float get() = bottom - top
-    val area: Float get() = max(0f, width) * max(0f, height)
-    val centerX: Float get() = (left + right) / 2f
-    val centerY: Float get() = (top + bottom) / 2f
+    val width: Float
+        get() = right - left
+
+    val height: Float
+        get() = bottom - top
+
+    val area: Float
+        get() = max(0f, width) * max(0f, height)
+
+    val centerX: Float
+        get() = (left + right) / 2f
+
+    val centerY: Float
+        get() = (top + bottom) / 2f
 
     fun iou(other: NormBox): Float {
         val interW = min(right, other.right) - max(left, other.left)

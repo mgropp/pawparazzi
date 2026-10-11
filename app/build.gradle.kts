@@ -8,11 +8,14 @@ plugins {
 
 val appVersionName = providers.gradleProperty("versionName").getOrElse("0.0.0-dev")
 
-val appVersionCode = Regex("""^(\d+)\.(\d+)\.(\d+)""").find(appVersionName)
-    ?.destructured
-    ?.let { (major, minor, patch) -> major.toInt() * 10_000 + minor.toInt() * 100 + patch.toInt() }
-    ?.coerceAtLeast(1)
-    ?: 1
+val appVersionCode =
+    Regex("""^(\d+)\.(\d+)\.(\d+)""")
+        .find(appVersionName)
+        ?.destructured
+        ?.let { (major, minor, patch) ->
+            major.toInt() * 10_000 + minor.toInt() * 100 + patch.toInt()
+        }
+        ?.coerceAtLeast(1) ?: 1
 
 android {
     namespace = "io.gropp.pawparazzi"

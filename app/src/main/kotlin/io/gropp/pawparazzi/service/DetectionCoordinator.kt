@@ -43,10 +43,12 @@ class DetectionCoordinator<D : AutoCloseable>(
     private val cameraMutex = Mutex()
     private var supervisorJob: Job? = null
 
-    @Volatile var detector: D? = null
+    @Volatile
+    var detector: D? = null
         private set
 
-    @Volatile var thermalMode: ThermalMode = ThermalMode.NORMAL
+    @Volatile
+    var thermalMode: ThermalMode = ThermalMode.NORMAL
         private set
 
     @Volatile private var started = false
@@ -62,7 +64,11 @@ class DetectionCoordinator<D : AutoCloseable>(
             cameraMutex.withLock { bindCamera() }
             launch { settingsFlow.drop(1).collect(::onSettingsChanged) }
             launch { surfaceProvider.drop(1).collect(::onSurfaceChanged) }
-            launch { soundFallbackLabels.collect { stateRepository.setWarning(Warning.SOUND_FALLBACK, it.isNotEmpty()) } }
+            launch {
+                soundFallbackLabels.collect {
+                    stateRepository.setWarning(Warning.SOUND_FALLBACK, it.isNotEmpty())
+                }
+            }
             launch { watchdogLoop() }
         }
     }
@@ -133,11 +139,12 @@ class DetectionCoordinator<D : AutoCloseable>(
 
     private suspend fun bindCamera() {
         try {
-            val captureResolution = camera.bind(
-                currentSettings.value.fps,
-                rotationFilter.current,
-                surfaceProvider.value,
-            )
+            val captureResolution =
+                camera.bind(
+                    currentSettings.value.fps,
+                    rotationFilter.current,
+                    surfaceProvider.value,
+                )
             stateRepository.update { it.copy(captureResolution = captureResolution) }
         } catch (e: Exception) {
             logger.error("Camera bind failed", e)

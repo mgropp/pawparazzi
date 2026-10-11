@@ -58,15 +58,20 @@ class DetectionService : LifecycleService() {
     private lateinit var captureQueue: CaptureQueue
     private var wakeLock: PowerManager.WakeLock? = null
     private var running = false
-    private val thermalListener = PowerManager.OnThermalStatusChangedListener { coordinator.onThermalStatus(it) }
-
-    private val displayListener = object : DisplayManager.DisplayListener {
-        override fun onDisplayAdded(displayId: Int) = Unit
-        override fun onDisplayRemoved(displayId: Int) = Unit
-        override fun onDisplayChanged(displayId: Int) {
-            if (displayId == Display.DEFAULT_DISPLAY) onRotationMaybeChanged()
-        }
+    private val thermalListener = PowerManager.OnThermalStatusChangedListener {
+        coordinator.onThermalStatus(it)
     }
+
+    private val displayListener =
+        object : DisplayManager.DisplayListener {
+            override fun onDisplayAdded(displayId: Int) = Unit
+
+            override fun onDisplayRemoved(displayId: Int) = Unit
+
+            override fun onDisplayChanged(displayId: Int) {
+                if (displayId == Display.DEFAULT_DISPLAY) onRotationMaybeChanged()
+            }
+        }
 
     override fun onBind(intent: Intent): IBinder? = super.onBind(intent)
 
@@ -101,54 +106,66 @@ class DetectionService : LifecycleService() {
         }
         running = true
         isRunning = true
-        wakeLock = (getSystemService(Context.POWER_SERVICE) as PowerManager)
-            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "pawparazzi:detection")
-            .also { it.acquire() }
+        wakeLock =
+            (getSystemService(Context.POWER_SERVICE) as PowerManager)
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "pawparazzi:detection")
+                .also { it.acquire() }
         soundPlayer.start()
         stateRepository.reset()
         stateRepository.update { it.copy(running = true) }
 
-        pipeline = DetectionPipeline(
-            settings = currentSettings,
-            stateRepository = stateRepository,
-            wallClockMs = System::currentTimeMillis,
-            onTriggers = ::onTriggers,
-            logger = AndroidDetectionLogger,
-        )
+        pipeline =
+            DetectionPipeline(
+                settings = currentSettings,
+                stateRepository = stateRepository,
+                wallClockMs = System::currentTimeMillis,
+                onTriggers = ::onTriggers,
+                logger = AndroidDetectionLogger,
+            )
         val throttler = FrameThrottler { coordinator.effectiveFps() }
-        val analyzer = FrameAnalyzer(clock, throttler, { coordinator.detector }, { coordinator.onFrameArrived() })
+        val analyzer =
+            FrameAnalyzer(
+                clock,
+                throttler,
+                { coordinator.detector },
+                { coordinator.onFrameArrived() },
+            )
         cameraController = CameraController(this, this, analysisExecutor, analyzer, ::onCameraError)
-        captureQueue = CaptureQueue(
-            context = this,
-            scope = lifecycleScope,
-            photoStore = photoStore,
-            imageCapture = { cameraController.imageCapture },
-            minFreeBytes = { currentSettings.value.minFreeSpaceBytes },
-            capBytes = { currentSettings.value.storageCapBytes },
-            nowWallMs = System::currentTimeMillis,
-            onEvent = { coordinator.onCaptureEvent(it) },
-        )
-        coordinator = DetectionCoordinator(
-            scope = lifecycleScope,
-            currentSettings = currentSettings,
-            settingsFlow = settingsRepository.settings,
-            surfaceProvider = surfaceHolder.provider,
-            soundFallbackLabels = soundPlayer.fallbackLabels,
-            camera = CameraControllerPort(cameraController),
-            setSoundSource = soundPlayer::setSource,
-            detectorFactory = { ObjectDetectorWrapper(this, clock, pipeline::onDetections) },
-            pipeline = pipeline,
-            watchdog = FrameWatchdog(clock),
-            rotationFilter = LandscapeRotationFilter(initialRotation),
-            stateRepository = stateRepository,
-            refreshNotification = ::refreshNotification,
-            logger = AndroidDetectionLogger,
-        )
+        captureQueue =
+            CaptureQueue(
+                context = this,
+                scope = lifecycleScope,
+                photoStore = photoStore,
+                imageCapture = { cameraController.imageCapture },
+                minFreeBytes = { currentSettings.value.minFreeSpaceBytes },
+                capBytes = { currentSettings.value.storageCapBytes },
+                nowWallMs = System::currentTimeMillis,
+                onEvent = { coordinator.onCaptureEvent(it) },
+            )
+        coordinator =
+            DetectionCoordinator(
+                scope = lifecycleScope,
+                currentSettings = currentSettings,
+                settingsFlow = settingsRepository.settings,
+                surfaceProvider = surfaceHolder.provider,
+                soundFallbackLabels = soundPlayer.fallbackLabels,
+                camera = CameraControllerPort(cameraController),
+                setSoundSource = soundPlayer::setSource,
+                detectorFactory = { ObjectDetectorWrapper(this, clock, pipeline::onDetections) },
+                pipeline = pipeline,
+                watchdog = FrameWatchdog(clock),
+                rotationFilter = LandscapeRotationFilter(initialRotation),
+                stateRepository = stateRepository,
+                refreshNotification = ::refreshNotification,
+                logger = AndroidDetectionLogger,
+            )
 
         val displayManager = getSystemService(DisplayManager::class.java)
         displayManager.registerDisplayListener(displayListener, null)
-        (getSystemService(Context.POWER_SERVICE) as PowerManager)
-            .addThermalStatusListener(ContextCompat.getMainExecutor(this), thermalListener)
+        (getSystemService(Context.POWER_SERVICE) as PowerManager).addThermalStatusListener(
+            ContextCompat.getMainExecutor(this),
+            thermalListener,
+        )
 
         coordinator.start()
     }
@@ -167,7 +184,9 @@ class DetectionService : LifecycleService() {
 
     private fun onRotationMaybeChanged() {
         if (!running) return
-        val display = getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY) ?: return
+        val display =
+            getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY)
+                ?: return
         coordinator.onRotation(display.rotation)
     }
 
@@ -184,7 +203,9 @@ class DetectionService : LifecycleService() {
         pipeline.close()
         coordinator.cancel()
         getSystemService(DisplayManager::class.java).unregisterDisplayListener(displayListener)
-        (getSystemService(Context.POWER_SERVICE) as PowerManager).removeThermalStatusListener(thermalListener)
+        (getSystemService(Context.POWER_SERVICE) as PowerManager).removeThermalStatusListener(
+            thermalListener
+        )
         captureQueue.close()
         coordinator.release()
         soundPlayer.release()
@@ -204,23 +225,29 @@ class DetectionService : LifecycleService() {
         val manager = notificationManager()
         if (manager.getNotificationChannel(CHANNEL_ID) == null) {
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, getString(R.string.notification_channel_name), NotificationManager.IMPORTANCE_LOW),
+                NotificationChannel(
+                    CHANNEL_ID,
+                    getString(R.string.notification_channel_name),
+                    NotificationManager.IMPORTANCE_LOW,
+                )
             )
         }
         val state = stateRepository.state.value
         val text = notificationText(stateRepository.state.value)
-        val openApp = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_IMMUTABLE,
-        )
-        val stop = PendingIntent.getService(
-            this,
-            1,
-            Intent(this, DetectionService::class.java).setAction(ACTION_STOP),
-            PendingIntent.FLAG_IMMUTABLE,
-        )
+        val openApp =
+            PendingIntent.getActivity(
+                this,
+                0,
+                Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                PendingIntent.FLAG_IMMUTABLE,
+            )
+        val stop =
+            PendingIntent.getService(
+                this,
+                1,
+                Intent(this, DetectionService::class.java).setAction(ACTION_STOP),
+                PendingIntent.FLAG_IMMUTABLE,
+            )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .setContentTitle(getString(R.string.app_name))
@@ -246,7 +273,9 @@ class DetectionService : LifecycleService() {
         private const val NOTIFICATION_ID = 1
 
         fun startIntent(context: Context, rotation: Int): Intent =
-            Intent(context, DetectionService::class.java).setAction(ACTION_START).putExtra(EXTRA_ROTATION, rotation)
+            Intent(context, DetectionService::class.java)
+                .setAction(ACTION_START)
+                .putExtra(EXTRA_ROTATION, rotation)
 
         fun stopIntent(context: Context): Intent =
             Intent(context, DetectionService::class.java).setAction(ACTION_STOP)

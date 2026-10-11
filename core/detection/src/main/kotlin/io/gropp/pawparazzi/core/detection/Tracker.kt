@@ -11,7 +11,8 @@ data class Track(
     val lastSeenMs: Long,
     val lastScore: Float = 0f,
 ) {
-    val label: Label get() = labelScores.maxBy { it.value }.key
+    val label: Label
+        get() = labelScores.maxBy { it.value }.key
 
     fun isConfirmed(minHits: Int): Boolean = hits >= minHits
 }
@@ -39,40 +40,45 @@ class Tracker(private val params: () -> TrackerParams = { TrackerParams() }) {
         val p = params()
         val dets = dedupe(detections, p.labelDedupeIou)
 
-        val pairs = greedyMatch(
-            candidates = buildList {
-                for (t in tracks.indices) for (d in dets.indices) {
-                    val iou = tracks[t].box.iou(dets[d].box)
-                    if (iou >= p.iouThreshold) add(Candidate(t, d, iou))
-                }
-            },
-            higherIsBetter = true,
-            usedTracks = mutableSetOf(),
-            usedDetections = mutableSetOf(),
-        ).toMutableList()
+        val pairs =
+            greedyMatch(
+                    candidates =
+                        buildList {
+                            for (t in tracks.indices) for (d in dets.indices) {
+                                val iou = tracks[t].box.iou(dets[d].box)
+                                if (iou >= p.iouThreshold) add(Candidate(t, d, iou))
+                            }
+                        },
+                    higherIsBetter = true,
+                    usedTracks = mutableSetOf(),
+                    usedDetections = mutableSetOf(),
+                )
+                .toMutableList()
 
         if (p.centerDistThreshold > 0f) {
             val usedTracks = pairs.mapTo(mutableSetOf()) { it.first }
             val usedDetections = pairs.mapTo(mutableSetOf()) { it.second }
-            pairs += greedyMatch(
-                candidates = buildList {
-                    for (t in tracks.indices) {
-                        if (t in usedTracks) continue
-                        for (d in dets.indices) {
-                            if (d in usedDetections) continue
-                            val tb = tracks[t].box
-                            val db = dets[d].box
-                            val norm = max(tb.diagonal(aspect), db.diagonal(aspect))
-                            if (norm <= 0f) continue
-                            val dist = tb.centerDistance(db, aspect) / norm
-                            if (dist <= p.centerDistThreshold) add(Candidate(t, d, dist))
-                        }
-                    }
-                },
-                higherIsBetter = false,
-                usedTracks = usedTracks,
-                usedDetections = usedDetections,
-            )
+            pairs +=
+                greedyMatch(
+                    candidates =
+                        buildList {
+                            for (t in tracks.indices) {
+                                if (t in usedTracks) continue
+                                for (d in dets.indices) {
+                                    if (d in usedDetections) continue
+                                    val tb = tracks[t].box
+                                    val db = dets[d].box
+                                    val norm = max(tb.diagonal(aspect), db.diagonal(aspect))
+                                    if (norm <= 0f) continue
+                                    val dist = tb.centerDistance(db, aspect) / norm
+                                    if (dist <= p.centerDistThreshold) add(Candidate(t, d, dist))
+                                }
+                            }
+                        },
+                    higherIsBetter = false,
+                    usedTracks = usedTracks,
+                    usedDetections = usedDetections,
+                )
         }
 
         val matchedByTrack = pairs.associate { it.first to it.second }
@@ -97,15 +103,16 @@ class Tracker(private val params: () -> TrackerParams = { TrackerParams() }) {
 
         dets.forEachIndexed { index, det ->
             if (index in matchedDetections) return@forEachIndexed
-            val track = Track(
-                id = nextId++,
-                box = det.box,
-                labelScores = mapOf(det.label to det.score),
-                hits = 1,
-                firstSeenMs = nowMs,
-                lastSeenMs = nowMs,
-                lastScore = det.score,
-            )
+            val track =
+                Track(
+                    id = nextId++,
+                    box = det.box,
+                    labelScores = mapOf(det.label to det.score),
+                    hits = 1,
+                    firstSeenMs = nowMs,
+                    lastSeenMs = nowMs,
+                    lastScore = det.score,
+                )
             createdIds += track.id
             next += track
         }
@@ -122,7 +129,9 @@ class Tracker(private val params: () -> TrackerParams = { TrackerParams() }) {
         if (labelDedupeIou >= 1f) return detections
         val kept = mutableListOf<Detection>()
         for (det in detections.sortedByDescending { it.score }) {
-            val duplicate = kept.any { it.label != det.label && it.box.iou(det.box) >= labelDedupeIou }
+            val duplicate = kept.any {
+                it.label != det.label && it.box.iou(det.box) >= labelDedupeIou
+            }
             if (!duplicate) kept += det
         }
         return kept
@@ -148,7 +157,9 @@ class Tracker(private val params: () -> TrackerParams = { TrackerParams() }) {
         usedTracks: MutableSet<Int>,
         usedDetections: MutableSet<Int>,
     ): List<Pair<Int, Int>> {
-        val comparator = if (higherIsBetter) compareByDescending<Candidate> { it.value } else compareBy { it.value }
+        val comparator =
+            if (higherIsBetter) compareByDescending<Candidate> { it.value }
+            else compareBy { it.value }
         val result = mutableListOf<Pair<Int, Int>>()
         for (c in candidates.sortedWith(comparator.thenBy { it.track }.thenBy { it.detection })) {
             if (c.track in usedTracks || c.detection in usedDetections) continue

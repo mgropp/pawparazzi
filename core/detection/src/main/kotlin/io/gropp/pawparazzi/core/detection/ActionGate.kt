@@ -9,13 +9,14 @@ class ActionGate(private val params: () -> GateParams = { GateParams() }) {
         lastTriggeredMs.keys.removeAll(update.prunedIds)
         val p = params()
         val activeIds = update.createdIds + update.matchedIds
-        val triggers = update.tracks
-            .filter { it.id in activeIds && it.isConfirmed(p.minHits) }
-            .filter { track ->
-                val last = lastTriggeredMs[track.id]
-                last == null || nowMs - last >= p.cooldownMs
-            }
-            .map { Trigger(it.id, it.label) }
+        val triggers =
+            update.tracks
+                .filter { it.id in activeIds && it.isConfirmed(p.minHits) }
+                .filter { track ->
+                    val last = lastTriggeredMs[track.id]
+                    last == null || nowMs - last >= p.cooldownMs
+                }
+                .map { Trigger(it.id, it.label) }
         triggers.forEach { lastTriggeredMs[it.trackId] = nowMs }
         return triggers
     }

@@ -14,24 +14,25 @@ object SettingsValidator {
     val MAX_RESULTS = 1..20
     val LABEL_DECAY = 0.5f..1.0f
 
-    fun sanitize(settings: AppSettings): AppSettings = with(settings) {
-        copy(
-            fps = fps.coerceIn(FPS),
-            scoreThreshold = scoreThreshold.clampFinite(SCORE_THRESHOLD),
-            cooldownSec = cooldownSec.coerceIn(COOLDOWN_SEC),
-            catSoundUri = catSoundUri?.takeIf { it.isNotBlank() },
-            dogSoundUri = dogSoundUri?.takeIf { it.isNotBlank() },
-            storageCapGb = storageCapGb.clampFinite(STORAGE_CAP_GB),
-            gracePeriodSec = gracePeriodSec.clampFinite(GRACE_PERIOD_SEC),
-            iouThreshold = iouThreshold.clampFinite(IOU_THRESHOLD),
-            centerDistThreshold = centerDistThreshold.clampFinite(CENTER_DIST_THRESHOLD),
-            minHits = minHits.coerceIn(MIN_HITS),
-            labelDedupeIou = labelDedupeIou.clampFinite(LABEL_DEDUPE_IOU),
-            minFreeSpaceGb = minFreeSpaceGb.clampFinite(MIN_FREE_SPACE_GB),
-            maxResults = maxResults.coerceIn(MAX_RESULTS),
-            labelDecay = labelDecay.clampFinite(LABEL_DECAY),
-        )
-    }
+    fun sanitize(settings: AppSettings): AppSettings =
+        with(settings) {
+            copy(
+                fps = fps.coerceIn(FPS),
+                scoreThreshold = scoreThreshold.clampFinite(SCORE_THRESHOLD),
+                cooldownSec = cooldownSec.coerceIn(COOLDOWN_SEC),
+                catSoundUri = catSoundUri?.takeIf { it.isNotBlank() },
+                dogSoundUri = dogSoundUri?.takeIf { it.isNotBlank() },
+                storageCapGb = storageCapGb.clampFinite(STORAGE_CAP_GB),
+                gracePeriodSec = gracePeriodSec.clampFinite(GRACE_PERIOD_SEC),
+                iouThreshold = iouThreshold.clampFinite(IOU_THRESHOLD),
+                centerDistThreshold = centerDistThreshold.clampFinite(CENTER_DIST_THRESHOLD),
+                minHits = minHits.coerceIn(MIN_HITS),
+                labelDedupeIou = labelDedupeIou.clampFinite(LABEL_DEDUPE_IOU),
+                minFreeSpaceGb = minFreeSpaceGb.clampFinite(MIN_FREE_SPACE_GB),
+                maxResults = maxResults.coerceIn(MAX_RESULTS),
+                labelDecay = labelDecay.clampFinite(LABEL_DECAY),
+            )
+        }
 
     private fun Float.clampFinite(range: ClosedFloatingPointRange<Float>): Float =
         if (isNaN()) range.start else coerceIn(range)

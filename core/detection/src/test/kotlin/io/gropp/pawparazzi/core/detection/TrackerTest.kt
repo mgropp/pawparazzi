@@ -31,18 +31,24 @@ class TrackerTest {
         var update = tracker.update(listOf(det(Label.DOG, 0.6f)), aspect, 200)
         assertThat(update.tracks).hasSize(1)
         assertThat(update.tracks.single().label).isEqualTo(Label.CAT)
-        repeat(10) { update = tracker.update(listOf(det(Label.DOG, 0.9f)), aspect, 400L + it * 200) }
+        repeat(10) {
+            update = tracker.update(listOf(det(Label.DOG, 0.9f)), aspect, 400L + it * 200)
+        }
         assertThat(update.tracks.single().id).isEqualTo(1L)
         assertThat(update.tracks.single().label).isEqualTo(Label.DOG)
     }
 
     @Test
     fun highlyOverlappingDifferentLabelsAreDeduped() {
-        val update = tracker.update(
-            listOf(det(Label.CAT, 0.8f, box(0.5f, 0.5f)), det(Label.DOG, 0.6f, box(0.5f, 0.5f))),
-            aspect,
-            0,
-        )
+        val update =
+            tracker.update(
+                listOf(
+                    det(Label.CAT, 0.8f, box(0.5f, 0.5f)),
+                    det(Label.DOG, 0.6f, box(0.5f, 0.5f)),
+                ),
+                aspect,
+                0,
+            )
         assertThat(update.tracks).hasSize(1)
         assertThat(update.tracks.single().label).isEqualTo(Label.CAT)
     }
@@ -52,18 +58,23 @@ class TrackerTest {
         val a = NormBox(0.0f, 0.0f, 0.5f, 0.5f)
         val b = NormBox(0.0f, 0.0f, 0.5f, 0.5f * 0.8f / 1f)
         assertThat(a.iou(b)).isWithin(0.001f).of(0.8f)
-        val update = tracker.update(listOf(det(Label.CAT, 0.8f, a), det(Label.DOG, 0.7f, b)), aspect, 0)
+        val update =
+            tracker.update(listOf(det(Label.CAT, 0.8f, a), det(Label.DOG, 0.7f, b)), aspect, 0)
         assertThat(update.tracks).hasSize(2)
     }
 
     @Test
     fun dedupeCanBeDisabled() {
         params = params.copy(labelDedupeIou = 1.0f)
-        val update = tracker.update(
-            listOf(det(Label.CAT, 0.8f, box(0.5f, 0.5f)), det(Label.DOG, 0.6f, box(0.5f, 0.5f))),
-            aspect,
-            0,
-        )
+        val update =
+            tracker.update(
+                listOf(
+                    det(Label.CAT, 0.8f, box(0.5f, 0.5f)),
+                    det(Label.DOG, 0.6f, box(0.5f, 0.5f)),
+                ),
+                aspect,
+                0,
+            )
         assertThat(update.tracks).hasSize(2)
     }
 
@@ -103,8 +114,12 @@ class TrackerTest {
         val height = 480f
         val horizontal = box(0.5f + pixels / width, 0.5f)
         val vertical = box(0.5f, 0.5f + pixels / height)
-        val dh = a.centerDistance(horizontal, aspect) / maxOf(a.diagonal(aspect), horizontal.diagonal(aspect))
-        val dv = a.centerDistance(vertical, aspect) / maxOf(a.diagonal(aspect), vertical.diagonal(aspect))
+        val dh =
+            a.centerDistance(horizontal, aspect) /
+                maxOf(a.diagonal(aspect), horizontal.diagonal(aspect))
+        val dv =
+            a.centerDistance(vertical, aspect) /
+                maxOf(a.diagonal(aspect), vertical.diagonal(aspect))
         assertThat(dh).isWithin(0.0001f).of(dv)
     }
 
@@ -158,7 +173,9 @@ class TrackerTest {
         tracker.update(listOf(det(box = a)), aspect, 0)
         params = params.copy(iouThreshold = iou - 0.001f, centerDistThreshold = 0f)
         assertThat(tracker.update(listOf(det(box = b)), aspect, 100).createdIds).isEmpty()
-        val strict = Tracker { TrackerParams(iouThreshold = iou + 0.001f, centerDistThreshold = 0f) }
+        val strict = Tracker {
+            TrackerParams(iouThreshold = iou + 0.001f, centerDistThreshold = 0f)
+        }
         strict.update(listOf(det(box = a)), aspect, 0)
         assertThat(strict.update(listOf(det(box = b)), aspect, 100).createdIds).hasSize(1)
     }

@@ -34,10 +34,13 @@ class DetectionResultMapperTest {
     fun boxesAreClampedToUnitSquare() {
         mapper.recordSent(1, 100, 100)
 
-        val frame = mapper.map(1, listOf(raw(left = -10f, top = -5f, right = 130f, bottom = 120f)))!!
+        val frame =
+            mapper.map(1, listOf(raw(left = -10f, top = -5f, right = 130f, bottom = 120f)))!!
 
         val box = frame.detections.single().box
-        assertThat(listOf(box.left, box.top, box.right, box.bottom)).containsExactly(0f, 0f, 1f, 1f).inOrder()
+        assertThat(listOf(box.left, box.top, box.right, box.bottom))
+            .containsExactly(0f, 0f, 1f, 1f)
+            .inOrder()
     }
 
     @Test
@@ -46,7 +49,9 @@ class DetectionResultMapperTest {
 
         val frame = mapper.map(1, listOf(raw("cat", 0.8f), raw("dog", 0.6f)))!!
 
-        assertThat(frame.detections.map { it.label }).containsExactly(Label.CAT, Label.DOG).inOrder()
+        assertThat(frame.detections.map { it.label })
+            .containsExactly(Label.CAT, Label.DOG)
+            .inOrder()
         assertThat(frame.detections.map { it.score }).containsExactly(0.8f, 0.6f).inOrder()
     }
 

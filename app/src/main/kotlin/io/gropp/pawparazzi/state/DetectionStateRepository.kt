@@ -41,7 +41,8 @@ class DetectionStateRepository @Inject constructor() {
     fun update(transform: (DetectionUiState) -> DetectionUiState) = _state.update(transform)
 
     fun setWarning(warning: Warning, active: Boolean) = _state.update {
-        if (active == (warning in it.warnings)) it else it.copy(warnings = if (active) it.warnings + warning else it.warnings - warning)
+        if (active == (warning in it.warnings)) it
+        else it.copy(warnings = if (active) it.warnings + warning else it.warnings - warning)
     }
 
     fun reset() {

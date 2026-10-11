@@ -5,16 +5,27 @@ import io.gropp.pawparazzi.camera.CameraController
 
 interface CameraPort {
     suspend fun bind(fps: Int, rotation: Int, surfaceProvider: Preview.SurfaceProvider?): String?
+
     suspend fun rebind()
+
     suspend fun onFpsChanged(fps: Int)
+
     suspend fun setSurfaceProvider(provider: Preview.SurfaceProvider?)
+
     fun setTargetRotation(rotation: Int)
+
     fun unbind()
 }
 
 class CameraControllerPort(private val controller: CameraController) : CameraPort {
-    override suspend fun bind(fps: Int, rotation: Int, surfaceProvider: Preview.SurfaceProvider?): String? =
-        controller.bind(fps, rotation, surfaceProvider).captureSize?.let { "${it.width}x${it.height}" }
+    override suspend fun bind(
+        fps: Int,
+        rotation: Int,
+        surfaceProvider: Preview.SurfaceProvider?,
+    ): String? =
+        controller.bind(fps, rotation, surfaceProvider).captureSize?.let {
+            "${it.width}x${it.height}"
+        }
 
     override suspend fun rebind() {
         controller.rebind()

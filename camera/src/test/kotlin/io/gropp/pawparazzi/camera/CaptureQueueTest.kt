@@ -20,27 +20,29 @@ class CaptureQueueTest {
     private var wallMs = 1_700_000_000_000L
     private var takeResult: (String) -> Boolean = { true }
 
-    private val storage = object : StorageGuard {
-        override fun freeBytes(): Long = freeBytes
+    private val storage =
+        object : StorageGuard {
+            override fun freeBytes(): Long = freeBytes
 
-        override suspend fun enforceCap(capBytes: Long) {
-            log += "cap:$capBytes"
+            override suspend fun enforceCap(capBytes: Long) {
+                log += "cap:$capBytes"
+            }
         }
-    }
     private val photoTaker = PhotoTaker { name ->
         log += "take:$name"
         takeResult(name)
     }
 
-    private fun TestScope.queue() = CaptureQueue(
-        scope = this,
-        storage = storage,
-        photoTaker = photoTaker,
-        minFreeBytes = { minFreeBytes },
-        capBytes = { capBytes },
-        nowWallMs = { wallMs },
-        onEvent = { events += it },
-    )
+    private fun TestScope.queue() =
+        CaptureQueue(
+            scope = this,
+            storage = storage,
+            photoTaker = photoTaker,
+            minFreeBytes = { minFreeBytes },
+            capBytes = { capBytes },
+            nowWallMs = { wallMs },
+            onEvent = { events += it },
+        )
 
     private fun request(trackId: Long, label: Label = Label.CAT) =
         CaptureRequest(listOf(Trigger(trackId, label)))
@@ -75,15 +77,20 @@ class CaptureQueueTest {
     @Test
     fun storageOkIsEmittedBeforeCapturing() = runTest {
         val order = mutableListOf<String>()
-        val queue = CaptureQueue(
-            scope = this,
-            storage = storage,
-            photoTaker = PhotoTaker { order += "take"; true },
-            minFreeBytes = { minFreeBytes },
-            capBytes = { capBytes },
-            nowWallMs = { wallMs },
-            onEvent = { order += it.toString() },
-        )
+        val queue =
+            CaptureQueue(
+                scope = this,
+                storage = storage,
+                photoTaker =
+                    PhotoTaker {
+                        order += "take"
+                        true
+                    },
+                minFreeBytes = { minFreeBytes },
+                capBytes = { capBytes },
+                nowWallMs = { wallMs },
+                onEvent = { order += it.toString() },
+            )
 
         queue.enqueue(request(1))
         advanceUntilIdle()
@@ -102,7 +109,9 @@ class CaptureQueueTest {
         advanceUntilIdle()
 
         val name = nameFor(request)
-        assertThat(events).containsExactly(CaptureEvent.StorageOk, CaptureEvent.Saved(name)).inOrder()
+        assertThat(events)
+            .containsExactly(CaptureEvent.StorageOk, CaptureEvent.Saved(name))
+            .inOrder()
         assertThat(log).containsExactly("take:$name", "cap:7777").inOrder()
         queue.close()
     }
@@ -129,7 +138,9 @@ class CaptureQueueTest {
         advanceUntilIdle()
 
         val taken = log.filter { it.startsWith("take:") }
-        assertThat(taken).containsExactlyElementsIn(requests.map { "take:" + nameFor(it) }).inOrder()
+        assertThat(taken)
+            .containsExactlyElementsIn(requests.map { "take:" + nameFor(it) })
+            .inOrder()
         queue.close()
     }
 
@@ -142,7 +153,9 @@ class CaptureQueueTest {
         advanceUntilIdle()
 
         val taken = log.filter { it.startsWith("take:") }
-        assertThat(taken).containsExactlyElementsIn(requests.take(4).map { "take:" + nameFor(it) }).inOrder()
+        assertThat(taken)
+            .containsExactlyElementsIn(requests.take(4).map { "take:" + nameFor(it) })
+            .inOrder()
         queue.close()
     }
 

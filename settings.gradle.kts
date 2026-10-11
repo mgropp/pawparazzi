@@ -17,7 +17,11 @@ dependencyResolutionManagement {
 rootProject.name = "pawparazzi"
 
 include(":app")
+
 include(":core:detection")
+
 include(":core:settings")
+
 include(":camera")
+
 include(":actions")
