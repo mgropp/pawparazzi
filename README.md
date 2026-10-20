@@ -3,6 +3,10 @@
 Android app that watches the back camera with MediaPipe EfficientDet-Lite0, plays a sound for each newly
 appearing cat or dog and saves a full-resolution photo to `Pictures/Pawparazzi/`.
 
+![image of a phone running the app](img/phone.jpg)
+
+![image of a cat taken by the app](img/cat.jpg)
+
 ## Build
 
 ```
