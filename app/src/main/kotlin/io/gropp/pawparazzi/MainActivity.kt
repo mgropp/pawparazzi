@@ -11,6 +11,7 @@ import android.os.PowerManager
 import android.provider.Settings
 import android.view.Display
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -37,7 +38,14 @@ import javax.inject.Inject
 private enum class Screen {
     Main,
     Settings,
-    Licenses,
+    Licenses;
+
+    fun parent(): Screen =
+        when (this) {
+            Main,
+            Settings -> Main
+            Licenses -> Settings
+        }
 }
 
 @AndroidEntryPoint
@@ -55,6 +63,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
                 var screen by rememberSaveable { mutableStateOf(Screen.Main) }
+                BackHandler(enabled = screen != Screen.Main) { screen = screen.parent() }
                 val permissionLauncher =
                     rememberLauncherForActivityResult(
                         ActivityResultContracts.RequestMultiplePermissions()
@@ -72,11 +81,11 @@ class MainActivity : ComponentActivity() {
                 }
                 Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     when (screen) {
-                        Screen.Licenses -> LicensesScreen(onBack = { screen = Screen.Settings })
+                        Screen.Licenses -> LicensesScreen(onBack = { screen = screen.parent() })
                         Screen.Settings ->
                             SettingsScreen(
                                 settingsViewModel,
-                                onBack = { screen = Screen.Main },
+                                onBack = { screen = screen.parent() },
                                 onOpenLicenses = { screen = Screen.Licenses },
                             )
                         Screen.Main ->
