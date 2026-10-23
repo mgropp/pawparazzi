@@ -47,9 +47,11 @@ class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
     private var systemStatus by mutableStateOf(SystemStatus())
+    private var autoStartPending = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        autoStartPending = savedInstanceState == null
         setContent {
             MaterialTheme(colorScheme = darkColorScheme()) {
                 var screen by rememberSaveable { mutableStateOf(Screen.Main) }
@@ -58,6 +60,7 @@ class MainActivity : ComponentActivity() {
                         ActivityResultContracts.RequestMultiplePermissions()
                     ) {
                         refreshSystemStatus()
+                        autoStartIfReady()
                     }
                 androidx.compose.runtime.LaunchedEffect(Unit) {
                     val missing =
@@ -101,6 +104,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         refreshSystemStatus()
+        autoStartIfReady()
         mainViewModel.refreshMuted()
     }
 
@@ -122,6 +126,12 @@ class MainActivity : ComponentActivity() {
                         granted(Manifest.permission.POST_NOTIFICATIONS),
                 batteryExempt = power.isIgnoringBatteryOptimizations(packageName),
             )
+    }
+
+    private fun autoStartIfReady() {
+        if (!autoStartPending || !systemStatus.cameraGranted) return
+        autoStartPending = false
+        startDetection()
     }
 
     private fun startDetection() {
