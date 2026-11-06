@@ -1,7 +1,7 @@
 # Pawparazzi
 
-Your very own pet paparazzo. Pawparazzi watches through your phone's camera, and whenever a cat or a dog shows up, it
-plays a sound and takes a photo.
+Your pet doorbell. Pawparazzi watches through your phone's camera, plays a sound when a cat or dog shows up so you can
+open the door, and saves a photo of every visitor.
 
 ![image of a phone running the app](img/phone.jpg)
 
@@ -9,13 +9,12 @@ plays a sound and takes a photo.
 
 ## What it does
 
-- Spots cats and dogs in the camera view.
-- Plays a sound for every animal that appears: one sound for cats, another for dogs. Use the built-in sounds or pick
-  your own. Aim the phone at the door, and the sound becomes a doorbell for your pets: when you hear it, go and open
-  the door.
-- Saves a full-resolution photo to `Pictures/Pawparazzi/`, so you can browse the results in your gallery and see who
-  visited and when.
-- Keeps going while the screen is off, so an old phone on a charger makes a good, always-on pet camera.
+- Watches for cats and dogs. Aim the phone at the door and let Pawparazzi do the waiting.
+- Rings your doorbell: it plays a sound for every animal that appears, one for cats and another for dogs, so you know
+  who is waiting. Use the built-in sounds or pick your own.
+- Saves a full-resolution photo of every visitor to `Pictures/Pawparazzi/`, so you can browse them in your gallery and
+  see who came by and when.
+- Keeps going while the screen is off, so an old phone on a charger makes a good, always-on doorbell.
 - Cleans up after itself: when your photos exceed the storage limit you set, the oldest ones are deleted. Only photos
   taken by Pawparazzi are ever removed.
 
@@ -25,7 +24,7 @@ plays a sound and takes a photo.
    [releases](https://github.com/mgropp/pawparazzi/releases) page.
 2. Open it and allow camera and notification access. Detection starts as soon as the app is opened and has camera
    access.
-3. Point the phone at the spot where your pets hang out.
+3. Point the phone at the door your pets wait at.
 4. Tap **Stop** in the app or in the notification when you are done. Tap **Start** to resume.
 
 Notes:
