@@ -10,9 +10,10 @@ object PhotoNaming {
     const val MIME_TYPE = "image/jpeg"
 
     fun displayName(triggers: List<Trigger>, timestampMs: Long): String {
+        val stamp = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(Date(timestampMs))
+        if (triggers.isEmpty()) return "manual_$stamp.jpg"
         val labels = triggers.map { it.label.name.lowercase() }.distinct().joinToString("-")
         val ids = triggers.map { it.trackId }.distinct().joinToString("-")
-        val stamp = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(Date(timestampMs))
         return "${labels}_${stamp}_t$ids.jpg"
     }
 }

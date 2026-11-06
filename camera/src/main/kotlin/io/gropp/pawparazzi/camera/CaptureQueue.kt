@@ -16,7 +16,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-data class CaptureRequest(val triggers: List<Trigger>)
+data class CaptureRequest(val triggers: List<Trigger>) {
+    companion object {
+        val Manual = CaptureRequest(emptyList())
+    }
+}
 
 sealed interface CaptureEvent {
     data class Saved(val displayName: String) : CaptureEvent

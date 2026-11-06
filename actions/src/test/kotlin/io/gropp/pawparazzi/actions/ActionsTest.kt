@@ -44,4 +44,16 @@ class PhotoNamingTest {
             TimeZone.setDefault(previous)
         }
     }
+
+    @Test
+    fun withoutTriggersNamesPhotoManual() {
+        val previous = TimeZone.getDefault()
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+        try {
+            val name = PhotoNaming.displayName(emptyList(), 1_791_468_902_123L)
+            assertThat(name).isEqualTo("manual_20261008_141502_123.jpg")
+        } finally {
+            TimeZone.setDefault(previous)
+        }
+    }
 }
