@@ -13,6 +13,9 @@ https://www.apache.org/licenses/LICENSE-2.0):
     Kotlin standard library and kotlinx.coroutines
         Copyright JetBrains s.r.o. and Kotlin Programming Language contributors
 
+Icons (app/src/main/res/drawable/ic_play.xml, ic_stop.xml, ic_photo_camera.xml):
+    Material Icons, Copyright Google LLC, Apache License 2.0
+
 Bundled sounds (actions/src/main/res/raw/):
 cat_default.wav:
     qubodup, CC0 license
