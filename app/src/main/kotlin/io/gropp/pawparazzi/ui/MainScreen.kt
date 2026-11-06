@@ -54,6 +54,7 @@ fun MainScreen(
     systemStatus: SystemStatus,
     onStart: () -> Unit,
     onStop: () -> Unit,
+    onTakePhoto: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenAppSettings: () -> Unit,
     onRequestBatteryExemption: () -> Unit,
@@ -91,6 +92,12 @@ fun MainScreen(
                 OutlinedButton(onClick = onOpenAppSettings) { Text("App settings") }
             } else if (state.running) {
                 Button(onClick = onStop) { Text("Stop") }
+                Button(
+                    onClick = onTakePhoto,
+                    enabled = state.thermalMode != ThermalMode.PAUSED,
+                ) {
+                    Text("Take photo")
+                }
             } else {
                 Button(onClick = onStart) { Text("Start") }
             }
