@@ -117,6 +117,21 @@ class CaptureQueueTest {
     }
 
     @Test
+    fun manualRequestIsSavedUnderManualName() = runTest {
+        val queue = queue()
+
+        queue.enqueue(CaptureRequest.Manual)
+        advanceUntilIdle()
+
+        val name = PhotoNaming.displayName(emptyList(), wallMs)
+        assertThat(name).startsWith("manual_")
+        assertThat(events)
+            .containsExactly(CaptureEvent.StorageOk, CaptureEvent.Saved(name))
+            .inOrder()
+        queue.close()
+    }
+
+    @Test
     fun failedSaveEmitsNoSavedAndSkipsCapEnforcement() = runTest {
         takeResult = { false }
         val queue = queue()
