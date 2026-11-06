@@ -19,7 +19,6 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -31,6 +30,7 @@ import io.gropp.pawparazzi.service.DetectionService
 import io.gropp.pawparazzi.state.PreviewSurfaceHolder
 import io.gropp.pawparazzi.ui.LicensesScreen
 import io.gropp.pawparazzi.ui.MainScreen
+import io.gropp.pawparazzi.ui.PawparazziTheme
 import io.gropp.pawparazzi.ui.SettingsScreen
 import io.gropp.pawparazzi.ui.SystemStatus
 import javax.inject.Inject
@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         autoStartPending = savedInstanceState == null
         setContent {
-            MaterialTheme(colorScheme = darkColorScheme()) {
+            PawparazziTheme {
                 var screen by rememberSaveable { mutableStateOf(Screen.Main) }
                 BackHandler(enabled = screen != Screen.Main) { screen = screen.parent() }
                 val permissionLauncher =
