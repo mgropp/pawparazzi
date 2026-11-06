@@ -133,6 +133,8 @@ class DetectionCoordinator<D : AutoCloseable>(
                 refreshNotification()
             }
             CaptureEvent.StorageOk -> stateRepository.setWarning(Warning.LOW_STORAGE, false)
+            is CaptureEvent.CaptureStarted ->
+                stateRepository.update { it.copy(lastShutterWallMs = event.wallMs) }
             is CaptureEvent.Saved -> {
                 logger.info("Saved ${event.displayName}")
                 stateRepository.update { it.copy(lastPhotoWallMs = event.wallMs) }

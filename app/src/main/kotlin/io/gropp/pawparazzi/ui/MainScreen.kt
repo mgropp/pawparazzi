@@ -94,7 +94,7 @@ fun MainScreen(
             }
             AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
             DetectionOverlay(state, Modifier.fillMaxSize())
-            PhotoFlash(state.lastPhotoWallMs, Modifier.fillMaxSize())
+            PhotoFlash(state.lastShutterWallMs, Modifier.fillMaxSize())
         }
         Column(
             Modifier.width(320.dp)
@@ -189,12 +189,13 @@ private fun formatTime(wallMs: Long?): String =
     wallMs?.let { DateFormat.getTimeInstance().format(Date(it)) } ?: "never"
 
 @Composable
-private fun PhotoFlash(lastPhotoWallMs: Long?, modifier: Modifier) {
+private fun PhotoFlash(lastShutterWallMs: Long?, modifier: Modifier) {
     val alpha = remember { Animatable(0f) }
-    var shownPhotoWallMs by remember { mutableStateOf(lastPhotoWallMs) }
-    LaunchedEffect(lastPhotoWallMs) {
-        if (lastPhotoWallMs == null || lastPhotoWallMs == shownPhotoWallMs) return@LaunchedEffect
-        shownPhotoWallMs = lastPhotoWallMs
+    var shownShutterWallMs by remember { mutableStateOf(lastShutterWallMs) }
+    LaunchedEffect(lastShutterWallMs) {
+        if (lastShutterWallMs == null || lastShutterWallMs == shownShutterWallMs)
+            return@LaunchedEffect
+        shownShutterWallMs = lastShutterWallMs
         alpha.snapTo(FLASH_ALPHA)
         alpha.animateTo(0f, tween(FLASH_DURATION_MS))
     }

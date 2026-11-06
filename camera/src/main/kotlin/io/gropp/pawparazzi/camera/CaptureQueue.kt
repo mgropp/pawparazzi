@@ -23,6 +23,8 @@ data class CaptureRequest(val triggers: List<Trigger>) {
 }
 
 sealed interface CaptureEvent {
+    data class CaptureStarted(val wallMs: Long) : CaptureEvent
+
     data class Saved(val displayName: String, val wallMs: Long) : CaptureEvent
 
     data class LowStorage(val freeBytes: Long) : CaptureEvent
@@ -37,7 +39,7 @@ interface StorageGuard {
 }
 
 fun interface PhotoTaker {
-    suspend fun take(name: String): Boolean
+    suspend fun take(name: String, onCaptureStarted: () -> Unit): Boolean
 }
 
 class CaptureQueue(
@@ -100,7 +102,8 @@ class CaptureQueue(
         onEvent(CaptureEvent.StorageOk)
         val wallMs = nowWallMs()
         val name = PhotoNaming.displayName(request.triggers, wallMs)
-        if (photoTaker.take(name)) {
+        val saved = photoTaker.take(name) { onEvent(CaptureEvent.CaptureStarted(nowWallMs())) }
+        if (saved) {
             onEvent(CaptureEvent.Saved(name, wallMs))
             storage.enforceCap(capBytes())
         }
@@ -121,7 +124,7 @@ private class ImageCapturePhotoTaker(
     private val context: Context,
     private val imageCapture: () -> ImageCapture?,
 ) : PhotoTaker {
-    override suspend fun take(name: String): Boolean {
+    override suspend fun take(name: String, onCaptureStarted: () -> Unit): Boolean {
         val capture =
             imageCapture()
                 ?: run {
@@ -141,17 +144,26 @@ private class ImageCapturePhotoTaker(
                     values,
                 )
                 .build()
-        return takePicture(capture, options)
+        return takePicture(capture, options, onCaptureStarted)
     }
 
     private suspend fun takePicture(
         capture: ImageCapture,
         options: ImageCapture.OutputFileOptions,
+        onCaptureStarted: () -> Unit,
     ): Boolean = suspendCancellableCoroutine { cont ->
         capture.takePicture(
             options,
             ContextCompat.getMainExecutor(context),
             object : ImageCapture.OnImageSavedCallback {
+                override fun onCaptureStarted() {
+                    try {
+                        onCaptureStarted()
+                    } catch (e: Exception) {
+                        Log.e(TAG, "onCaptureStarted listener failed", e)
+                    }
+                }
+
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     cont.resume(true)
                 }
