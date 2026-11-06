@@ -28,7 +28,7 @@ class CaptureQueueTest {
                 log += "cap:$capBytes"
             }
         }
-    private val photoTaker = PhotoTaker { name ->
+    private val photoTaker = PhotoTaker { name, _ ->
         log += "take:$name"
         takeResult(name)
     }
@@ -82,7 +82,7 @@ class CaptureQueueTest {
                 scope = this,
                 storage = storage,
                 photoTaker =
-                    PhotoTaker {
+                    PhotoTaker { _, _ ->
                         order += "take"
                         true
                     },
@@ -127,6 +127,39 @@ class CaptureQueueTest {
         assertThat(name).startsWith("manual_")
         assertThat(events)
             .containsExactly(CaptureEvent.StorageOk, CaptureEvent.Saved(name, wallMs))
+            .inOrder()
+        queue.close()
+    }
+
+    @Test
+    fun captureStartEmitsCaptureStartedWithTimeOfStartBeforeSaved() = runTest {
+        val startWallMs = wallMs + 250
+        val queue =
+            CaptureQueue(
+                scope = this,
+                storage = storage,
+                photoTaker =
+                    PhotoTaker { _, onCaptureStarted ->
+                        wallMs = startWallMs
+                        onCaptureStarted()
+                        true
+                    },
+                minFreeBytes = { minFreeBytes },
+                capBytes = { capBytes },
+                nowWallMs = { wallMs },
+                onEvent = { events += it },
+            )
+        val nameWallMs = wallMs
+
+        queue.enqueue(CaptureRequest.Manual)
+        advanceUntilIdle()
+
+        assertThat(events)
+            .containsExactly(
+                CaptureEvent.StorageOk,
+                CaptureEvent.CaptureStarted(startWallMs),
+                CaptureEvent.Saved(PhotoNaming.displayName(emptyList(), nameWallMs), nameWallMs),
+            )
             .inOrder()
         queue.close()
     }

@@ -28,6 +28,7 @@ data class DetectionUiState(
     val effectiveFps: Float = 0f,
     val lastTriggerWallMs: Long? = null,
     val lastPhotoWallMs: Long? = null,
+    val lastShutterWallMs: Long? = null,
     val warnings: Set<Warning> = emptySet(),
     val captureResolution: String? = null,
     val rebindCount: Int = 0,

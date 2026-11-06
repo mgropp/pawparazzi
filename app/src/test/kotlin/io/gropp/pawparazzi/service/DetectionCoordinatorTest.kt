@@ -396,6 +396,16 @@ class DetectionCoordinatorTest {
     }
 
     @Test
+    fun captureStartedEventPublishesShutterTimeOnly() = runTest {
+        val coordinator = startedCoordinator()
+
+        coordinator.onCaptureEvent(CaptureEvent.CaptureStarted(1_700_000_000_000L))
+
+        assertThat(state.state.value.lastShutterWallMs).isEqualTo(1_700_000_000_000L)
+        assertThat(state.state.value.lastPhotoWallMs).isNull()
+    }
+
+    @Test
     fun releaseUnbindsCameraAndClosesDetector() = runTest {
         val coordinator = startedCoordinator()
         val detector = coordinator.detector!!
