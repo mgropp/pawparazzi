@@ -1,6 +1,7 @@
 package io.gropp.pawparazzi.ui
 
 import android.graphics.Color as AndroidColor
+import androidx.annotation.DrawableRes
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -11,16 +12,21 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -28,11 +34,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.gropp.pawparazzi.MainViewModel
+import io.gropp.pawparazzi.R
 import io.gropp.pawparazzi.core.detection.ThermalMode
 import io.gropp.pawparazzi.state.DetectionUiState
 import io.gropp.pawparazzi.state.PreviewSurfaceHolder
@@ -90,16 +98,8 @@ fun MainScreen(
                 Text("Camera permission is required to watch for animals.")
                 Button(onClick = onRequestPermissions) { Text("Grant permission") }
                 OutlinedButton(onClick = onOpenAppSettings) { Text("App settings") }
-            } else if (state.running) {
-                Button(onClick = onStop) { Text("Stop") }
-                Button(
-                    onClick = onTakePhoto,
-                    enabled = state.thermalMode != ThermalMode.PAUSED,
-                ) {
-                    Text("Take photo")
-                }
             } else {
-                Button(onClick = onStart) { Text("Start") }
+                ControlButtons(state, onStart, onStop, onTakePhoto)
             }
             OutlinedButton(onClick = onOpenSettings) { Text("Settings") }
             StatusLine(state)
@@ -111,6 +111,52 @@ fun MainScreen(
                 onRequestBatteryExemption,
             )
         }
+    }
+}
+
+@Composable
+private fun ControlButtons(
+    state: DetectionUiState,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+    onTakePhoto: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (state.running) {
+            RoundIconButton(R.drawable.ic_stop, "Stop", onStop)
+        } else {
+            RoundIconButton(R.drawable.ic_play, "Start", onStart)
+        }
+        RoundIconButton(
+            R.drawable.ic_photo_camera,
+            "Take photo",
+            onTakePhoto,
+            enabled = state.running && state.thermalMode != ThermalMode.PAUSED,
+        )
+    }
+}
+
+@Composable
+private fun RoundIconButton(
+    @DrawableRes icon: Int,
+    description: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+) {
+    FilledIconButton(
+        onClick = onClick,
+        enabled = enabled,
+        shape = CircleShape,
+        modifier = Modifier.size(64.dp),
+    ) {
+        Icon(
+            painterResource(icon),
+            contentDescription = description,
+            modifier = Modifier.size(32.dp),
+        )
     }
 }
 
