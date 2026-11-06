@@ -23,7 +23,7 @@ data class CaptureRequest(val triggers: List<Trigger>) {
 }
 
 sealed interface CaptureEvent {
-    data class Saved(val displayName: String) : CaptureEvent
+    data class Saved(val displayName: String, val wallMs: Long) : CaptureEvent
 
     data class LowStorage(val freeBytes: Long) : CaptureEvent
 
@@ -98,9 +98,10 @@ class CaptureQueue(
             return
         }
         onEvent(CaptureEvent.StorageOk)
-        val name = PhotoNaming.displayName(request.triggers, nowWallMs())
+        val wallMs = nowWallMs()
+        val name = PhotoNaming.displayName(request.triggers, wallMs)
         if (photoTaker.take(name)) {
-            onEvent(CaptureEvent.Saved(name))
+            onEvent(CaptureEvent.Saved(name, wallMs))
             storage.enforceCap(capBytes())
         }
     }
