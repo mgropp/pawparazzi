@@ -387,6 +387,15 @@ class DetectionCoordinatorTest {
     }
 
     @Test
+    fun savedEventPublishesLastPhotoTime() = runTest {
+        val coordinator = startedCoordinator()
+
+        coordinator.onCaptureEvent(CaptureEvent.Saved("manual_x.jpg", 1_700_000_000_000L))
+
+        assertThat(state.state.value.lastPhotoWallMs).isEqualTo(1_700_000_000_000L)
+    }
+
+    @Test
     fun releaseUnbindsCameraAndClosesDetector() = runTest {
         val coordinator = startedCoordinator()
         val detector = coordinator.detector!!

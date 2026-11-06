@@ -110,7 +110,7 @@ class CaptureQueueTest {
 
         val name = nameFor(request)
         assertThat(events)
-            .containsExactly(CaptureEvent.StorageOk, CaptureEvent.Saved(name))
+            .containsExactly(CaptureEvent.StorageOk, CaptureEvent.Saved(name, wallMs))
             .inOrder()
         assertThat(log).containsExactly("take:$name", "cap:7777").inOrder()
         queue.close()
@@ -126,7 +126,7 @@ class CaptureQueueTest {
         val name = PhotoNaming.displayName(emptyList(), wallMs)
         assertThat(name).startsWith("manual_")
         assertThat(events)
-            .containsExactly(CaptureEvent.StorageOk, CaptureEvent.Saved(name))
+            .containsExactly(CaptureEvent.StorageOk, CaptureEvent.Saved(name, wallMs))
             .inOrder()
         queue.close()
     }
@@ -186,7 +186,7 @@ class CaptureQueueTest {
         advanceUntilIdle()
 
         assertThat(events.filterIsInstance<CaptureEvent.Saved>())
-            .containsExactly(CaptureEvent.Saved(nameFor(following)))
+            .containsExactly(CaptureEvent.Saved(nameFor(following), wallMs))
         queue.close()
     }
 

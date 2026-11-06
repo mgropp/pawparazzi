@@ -3,7 +3,10 @@ package io.gropp.pawparazzi.ui
 import android.graphics.Color as AndroidColor
 import androidx.annotation.DrawableRes
 import androidx.camera.view.PreviewView
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,14 +27,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -86,6 +93,7 @@ fun MainScreen(
             }
             AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize())
             DetectionOverlay(state, Modifier.fillMaxSize())
+            PhotoFlash(state.lastPhotoWallMs, Modifier.fillMaxSize())
         }
         Column(
             Modifier.width(320.dp)
@@ -162,8 +170,6 @@ private fun RoundIconButton(
 
 @Composable
 private fun StatusLine(state: DetectionUiState) {
-    val lastTrigger =
-        state.lastTriggerWallMs?.let { DateFormat.getTimeInstance().format(Date(it)) } ?: "never"
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(
             if (state.running) "Running" else "Stopped",
@@ -171,11 +177,31 @@ private fun StatusLine(state: DetectionUiState) {
         )
         Text("FPS: ${"%.1f".format(state.effectiveFps)}")
         Text("Tracks: ${state.tracks.size}")
-        Text("Last trigger: $lastTrigger")
+        Text("Last trigger: ${formatTime(state.lastTriggerWallMs)}")
+        Text("Last photo: ${formatTime(state.lastPhotoWallMs)}")
         Text("Capture: ${state.captureResolution ?: "-"}")
         Text("Camera rebinds: ${state.rebindCount}")
     }
 }
+
+private fun formatTime(wallMs: Long?): String =
+    wallMs?.let { DateFormat.getTimeInstance().format(Date(it)) } ?: "never"
+
+@Composable
+private fun PhotoFlash(lastPhotoWallMs: Long?, modifier: Modifier) {
+    val alpha = remember { Animatable(0f) }
+    var shownPhotoWallMs by remember { mutableStateOf(lastPhotoWallMs) }
+    LaunchedEffect(lastPhotoWallMs) {
+        if (lastPhotoWallMs == null || lastPhotoWallMs == shownPhotoWallMs) return@LaunchedEffect
+        shownPhotoWallMs = lastPhotoWallMs
+        alpha.snapTo(FLASH_ALPHA)
+        alpha.animateTo(0f, tween(FLASH_DURATION_MS))
+    }
+    Box(modifier.graphicsLayer { this.alpha = alpha.value }.background(Color.White))
+}
+
+private const val FLASH_ALPHA = 0.8f
+private const val FLASH_DURATION_MS = 400
 
 @Composable
 private fun WarningList(
