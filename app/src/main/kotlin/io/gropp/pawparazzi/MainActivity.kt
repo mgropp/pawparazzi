@@ -97,6 +97,9 @@ class MainActivity : ComponentActivity() {
                                 onStop = {
                                     startService(DetectionService.stopIntent(this@MainActivity))
                                 },
+                                onTakePhoto = {
+                                    startService(DetectionService.captureIntent(this@MainActivity))
+                                },
                                 onOpenSettings = { screen = Screen.Settings },
                                 onOpenAppSettings = ::openAppSettings,
                                 onRequestBatteryExemption = ::requestBatteryExemption,

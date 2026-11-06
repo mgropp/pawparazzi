@@ -80,6 +80,7 @@ class DetectionService : LifecycleService() {
         when (intent?.action) {
             ACTION_STOP -> stopDetection()
             ACTION_START -> startDetection(intent.getIntExtra(EXTRA_ROTATION, Surface.ROTATION_90))
+            ACTION_CAPTURE -> if (running) takeManualPhoto() else stopSelf()
             else -> stopSelf()
         }
         return START_NOT_STICKY
@@ -182,6 +183,11 @@ class DetectionService : LifecycleService() {
         refreshNotification()
     }
 
+    private fun takeManualPhoto() {
+        Log.i(TAG, "Manual photo requested")
+        captureQueue.enqueue(CaptureRequest.Manual)
+    }
+
     private fun onRotationMaybeChanged() {
         if (!running) return
         val display =
@@ -262,6 +268,7 @@ class DetectionService : LifecycleService() {
     companion object {
         const val ACTION_START = "io.gropp.pawparazzi.START"
         const val ACTION_STOP = "io.gropp.pawparazzi.STOP"
+        const val ACTION_CAPTURE = "io.gropp.pawparazzi.CAPTURE"
         const val EXTRA_ROTATION = "rotation"
 
         @Volatile
@@ -279,5 +286,8 @@ class DetectionService : LifecycleService() {
 
         fun stopIntent(context: Context): Intent =
             Intent(context, DetectionService::class.java).setAction(ACTION_STOP)
+
+        fun captureIntent(context: Context): Intent =
+            Intent(context, DetectionService::class.java).setAction(ACTION_CAPTURE)
     }
 }
