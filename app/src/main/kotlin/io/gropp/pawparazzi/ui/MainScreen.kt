@@ -34,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -79,7 +80,7 @@ fun MainScreen(
     val mediaMuted by viewModel.mediaMuted.collectAsStateWithLifecycle()
 
     Row(Modifier.fillMaxSize().safeDrawingPadding()) {
-        Box(Modifier.weight(1f).fillMaxHeight()) {
+        Box(Modifier.weight(1f).fillMaxHeight().clipToBounds()) {
             val context = LocalContext.current
             val previewView = remember {
                 PreviewView(context).apply {
