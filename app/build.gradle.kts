@@ -43,6 +43,13 @@ android {
     testOptions { unitTests.isIncludeAndroidResources = true }
 }
 
+androidComponents {
+    beforeVariants { variant ->
+        variant.hostTests[com.android.build.api.variant.HostTestBuilder.UNIT_TEST_TYPE]?.enable =
+            true
+    }
+}
+
 dependencies {
     implementation(project(":camera"))
     implementation(project(":core:detection"))
