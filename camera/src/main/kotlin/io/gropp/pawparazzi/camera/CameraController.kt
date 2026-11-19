@@ -6,14 +6,15 @@ import android.hardware.camera2.CaptureRequest
 import android.util.Log
 import android.util.Range
 import android.util.Size
-import androidx.camera.camera2.interop.Camera2CameraInfo
-import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.camera2Interop
+import androidx.camera.camera2.interop.cameraCharacteristics
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.CameraState
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
+import androidx.camera.core.SessionConfig
 import androidx.camera.core.UseCase
 import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
@@ -90,7 +91,6 @@ class CameraController(
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                 .setTargetRotation(rotation)
-                .also { applyFpsRange(Camera2Interop.Extender(it), range) }
                 .build()
                 .also { it.setAnalyzer(analysisExecutor, analyzer) }
 
@@ -101,14 +101,12 @@ class CameraController(
                     resolutionSelector(ResolutionStrategy.HIGHEST_AVAILABLE_STRATEGY)
                 )
                 .setTargetRotation(rotation)
-                .also { applyFpsRange(Camera2Interop.Extender(it), range) }
                 .build()
 
         val previewUseCase = surfaceProvider?.let { sp ->
             Preview.Builder()
                 .setResolutionSelector(resolutionSelector(null))
                 .setTargetRotation(rotation)
-                .also { applyFpsRange(Camera2Interop.Extender(it), range) }
                 .build()
                 .also { it.setSurfaceProvider(sp) }
         }
@@ -118,7 +116,7 @@ class CameraController(
             cameraProvider.bindToLifecycle(
                 lifecycleOwner,
                 CameraSelector.DEFAULT_BACK_CAMERA,
-                *useCases.toTypedArray(),
+                sessionConfig(useCases, range),
             )
         camera = boundCamera
         imageAnalysis = analysis
@@ -143,8 +141,9 @@ class CameraController(
             )
         lastSummary = summary
         val level = runCatching {
-            Camera2CameraInfo.from(boundCamera.cameraInfo)
-                .getCameraCharacteristic(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
+            boundCamera.cameraInfo.cameraCharacteristics.get(
+                CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL
+            )
         }
             .getOrNull()
         Log.i(TAG, "Bound: hardwareLevel=$level $summary")
@@ -190,22 +189,26 @@ class CameraController(
             CameraSelector.DEFAULT_BACK_CAMERA.filter(cameraProvider.availableCameraInfos)
                 .firstOrNull() ?: return null
         val ranges =
-            Camera2CameraInfo.from(info)
-                .getCameraCharacteristic(
-                    CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES
-                )
+            info.cameraCharacteristics
+                .get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)
                 ?.map { FpsRange(it.lower, it.upper) }
                 .orEmpty()
         return FpsRangeSelector.select(ranges, fps)
     }
 
-    private fun applyFpsRange(extender: Camera2Interop.Extender<*>, range: FpsRange?) {
-        if (range == null) return
-        extender.setCaptureRequestOption(
-            CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
-            Range(range.lower, range.upper),
-        )
-    }
+    private fun sessionConfig(useCases: List<UseCase>, range: FpsRange?): SessionConfig =
+        SessionConfig.Builder(useCases)
+            .also { builder ->
+                if (range != null) {
+                    builder.camera2Interop {
+                        setCaptureRequestOption(
+                            CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE,
+                            Range(range.lower, range.upper),
+                        )
+                    }
+                }
+            }
+            .build()
 
     private fun resolutionSelector(strategy: ResolutionStrategy?): ResolutionSelector =
         ResolutionSelector.Builder()
