@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -122,12 +123,11 @@ private fun Section(title: String) {
 private fun IntSetting(label: String, value: Int, range: IntRange, onChange: (Int) -> Unit) {
     Column {
         Text("$label: $value")
-        Slider(
+        SettingSlider(
             value = value.toFloat(),
             onValueChange = { onChange(it.toInt()) },
             valueRange = range.first.toFloat()..range.last.toFloat(),
             steps = if (range.last - range.first <= 40) range.last - range.first - 1 else 0,
-            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -141,13 +141,24 @@ private fun FloatSetting(
 ) {
     Column {
         Text("$label: ${"%.2f".format(value)}")
-        Slider(
+        SettingSlider(
             value = value,
             onValueChange = { onChange((it * 100f).toInt() / 100f) },
             valueRange = range,
-            modifier = Modifier.fillMaxWidth(),
         )
     }
+}
+
+@Composable
+private fun SettingSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int = 0,
+) {
+    val state = rememberSliderState(value, steps, trackRange = valueRange)
+    state.value = value
+    Slider(state = state, onValueChange = onValueChange, modifier = Modifier.fillMaxWidth())
 }
 
 @Composable
