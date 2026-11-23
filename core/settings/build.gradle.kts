@@ -4,7 +4,7 @@ plugins {
 
 android {
     namespace = "io.gropp.pawparazzi.core.settings"
-    compileSdk = 37
+    compileSdk { version = release(37) { minorApiLevel = 2 } }
 
     defaultConfig {
         minSdk = 29

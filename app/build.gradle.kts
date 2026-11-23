@@ -19,7 +19,7 @@ val appVersionCode =
 
 android {
     namespace = "io.gropp.pawparazzi"
-    compileSdk = 37
+    compileSdk { version = release(37) { minorApiLevel = 2 } }
 
     defaultConfig {
         applicationId = "io.gropp.pawparazzi"
